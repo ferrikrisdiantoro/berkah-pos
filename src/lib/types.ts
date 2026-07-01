@@ -1,0 +1,120 @@
+// Tipe domain aplikasi — dipetakan dari tabel Postgres (lihat supabase/migrations).
+
+export type DocStatus = "draft" | "unpaid" | "partial" | "paid";
+export type ContactType = "supplier" | "customer" | "both";
+export type PaymentKind = "purchase" | "sale";
+
+export interface BusinessSettings {
+  id: number;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  logo_url: string | null;
+  footer_note: string | null;
+}
+
+export interface BankAccount {
+  id: string;
+  name: string;
+  account_number: string | null;
+  holder: string | null;
+  is_cash: boolean;
+  is_active: boolean;
+}
+
+export interface Unit {
+  id: string;
+  name: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  name: string;
+}
+
+export interface Product {
+  id: string;
+  code: string | null;
+  name: string;
+  category_id: string | null;
+  unit_id: string | null;
+  buy_price: number;
+  sell_price: number;
+  track_stock: boolean;
+  stock: number;
+  min_stock: number;
+  is_active: boolean;
+  unit?: Unit | null;
+  category?: ProductCategory | null;
+}
+
+export interface Contact {
+  id: string;
+  type: ContactType;
+  name: string;
+  city: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  is_active: boolean;
+}
+
+export interface DocItem {
+  id: string;
+  product_id: string | null;
+  description: string;
+  qty: number;
+  unit_price: number;
+  discount_pct: number;
+  tax_pct: number;
+  line_total: number;
+  position: number;
+}
+
+export interface Purchase {
+  id: string;
+  number: string;
+  contact_id: string | null;
+  date: string;
+  due_date: string | null;
+  status: DocStatus;
+  subtotal: number;
+  discount_total: number;
+  tax_total: number;
+  total: number;
+  paid_total: number;
+  notes: string | null;
+  share_token: string;
+  created_at: string;
+  contact?: Contact | null;
+  items?: DocItem[];
+}
+
+export type Sale = Omit<Purchase, "items"> & { items?: DocItem[] };
+
+export interface Payment {
+  id: string;
+  kind: PaymentKind;
+  purchase_id: string | null;
+  sale_id: string | null;
+  account_id: string | null;
+  date: string;
+  amount: number;
+  method: string | null;
+  notes: string | null;
+}
+
+export const STATUS_LABEL: Record<DocStatus, string> = {
+  draft: "Draft",
+  unpaid: "Belum Bayar",
+  partial: "Sebagian",
+  paid: "Lunas",
+};
+
+export const STATUS_TONE: Record<DocStatus, "default" | "success" | "warning" | "danger" | "muted"> = {
+  draft: "muted",
+  unpaid: "danger",
+  partial: "warning",
+  paid: "success",
+};

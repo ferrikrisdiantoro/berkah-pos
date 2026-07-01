@@ -1,0 +1,147 @@
+import Link from "next/link";
+import { ShoppingCart, Receipt, Package, TriangleAlert } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatRupiah, formatTanggal } from "@/lib/utils";
+import { STATUS_LABEL, STATUS_TONE, type DocStatus } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+
+  const [purchasesRes, salesRes, productsRes, recentRes] = await Promise.all([
+    supabase.from("purchases").select("total, paid_total, status"),
+    supabase.from("sales").select("total, paid_total, status"),
+    supabase.from("products").select("id, stock, min_stock, track_stock, is_active"),
+    supabase
+      .from("purchases")
+      .select("id, number, date, total, status, contact:contacts(name)")
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
+
+  const purchases = purchasesRes.data ?? [];
+  const sales = salesRes.data ?? [];
+  const products = productsRes.data ?? [];
+
+  const hutang = purchases
+    .filter((p) => p.status !== "paid" && p.status !== "draft")
+    .reduce((s, p) => s + (Number(p.total) - Number(p.paid_total)), 0);
+  const piutang = sales
+    .filter((s) => s.status !== "paid" && s.status !== "draft")
+    .reduce((sum, s) => sum + (Number(s.total) - Number(s.paid_total)), 0);
+  const lowStock = products.filter((p) => {
+    if (!p.is_active || !p.track_stock) return false;
+    const stock = Number(p.stock);
+    const minStock = Number(p.min_stock);
+    return stock <= 0 || (minStock > 0 && stock <= minStock);
+  }).length;
+
+  const stats = [
+    {
+      label: "Hutang Pembelian",
+      value: formatRupiah(hutang),
+      sub: `${purchases.length} nota pembelian`,
+      icon: ShoppingCart,
+      href: "/pembelian",
+      tone: "text-destructive",
+    },
+    {
+      label: "Piutang Penjualan",
+      value: formatRupiah(piutang),
+      sub: `${sales.length} nota penjualan`,
+      icon: Receipt,
+      href: "/penjualan",
+      tone: "text-success",
+    },
+    {
+      label: "Produk Aktif",
+      value: String(products.filter((p) => p.is_active).length),
+      sub: "master produk",
+      icon: Package,
+      href: "/produk",
+      tone: "text-primary",
+    },
+    {
+      label: "Perlu Restok",
+      value: String(lowStock),
+      sub: "habis / di bawah minimum",
+      icon: TriangleAlert,
+      href: "/produk",
+      tone: "text-warning",
+    },
+  ];
+
+  const recent = recentRes.data ?? [];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Ringkasan aktivitas usaha.</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((s) => (
+          <Link key={s.label} href={s.href}>
+            <Card className="transition-shadow hover:shadow-md">
+              <CardContent className="flex items-start justify-between pt-5">
+                <div>
+                  <p className="text-sm text-muted-foreground">{s.label}</p>
+                  <p className="mt-1 text-2xl font-bold">{s.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{s.sub}</p>
+                </div>
+                <s.icon className={`h-6 w-6 ${s.tone}`} />
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      <Card>
+        <CardContent className="pt-5">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">Pembelian Terakhir</h2>
+            <Link href="/pembelian" className="text-sm text-primary hover:underline">
+              Lihat semua
+            </Link>
+          </div>
+          {recent.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Belum ada transaksi pembelian.
+            </p>
+          ) : (
+            <div className="divide-y divide-border">
+              {recent.map((p) => {
+                const contact = p.contact as { name?: string } | { name?: string }[] | null;
+                const name = Array.isArray(contact) ? contact[0]?.name : contact?.name;
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/pembelian/${p.id}`}
+                    className="flex items-center justify-between py-3 hover:bg-muted/40"
+                  >
+                    <div>
+                      <div className="text-sm font-medium">{p.number}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {name ?? "—"} · {formatTanggal(p.date)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">{formatRupiah(p.total)}</span>
+                      <Badge tone={STATUS_TONE[p.status as DocStatus]}>
+                        {STATUS_LABEL[p.status as DocStatus]}
+                      </Badge>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
