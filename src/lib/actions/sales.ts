@@ -104,7 +104,7 @@ export async function saveSaleAction(formData: FormData) {
   }
 
   revalidatePath("/penjualan");
-  redirect(`/penjualan/${saleId}`);
+  redirect(`/penjualan/${saleId}?toast=` + encodeURIComponent("Nota penjualan tersimpan"));
 }
 
 export async function deleteSaleAction(formData: FormData) {

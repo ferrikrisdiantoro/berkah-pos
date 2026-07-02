@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 import { saveContactAction } from "@/lib/actions/contacts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,10 @@ export function ContactForm({ contact }: { contact?: Contact }) {
       saveContactAction(fd),
     null,
   );
+
+  useEffect(() => {
+    if (state?.error) toast.error(state.error);
+  }, [state]);
 
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">

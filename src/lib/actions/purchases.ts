@@ -104,7 +104,7 @@ export async function savePurchaseAction(formData: FormData) {
   }
 
   revalidatePath("/pembelian");
-  redirect(`/pembelian/${purchaseId}`);
+  redirect(`/pembelian/${purchaseId}?toast=` + encodeURIComponent("Nota pembelian tersimpan"));
 }
 
 export async function deletePurchaseAction(formData: FormData) {

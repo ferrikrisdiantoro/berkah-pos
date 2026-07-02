@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 import { adjustStockAction } from "@/lib/actions/products";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,11 @@ export function StockAdjustForm({
       (await adjustStockAction(fd)) ?? null,
     null,
   );
+
+  useEffect(() => {
+    if (state?.ok) toast.success("Stok berhasil disesuaikan");
+    else if (state?.error) toast.error(state.error);
+  }, [state]);
 
   return (
     <form action={action} className="flex flex-col gap-3">

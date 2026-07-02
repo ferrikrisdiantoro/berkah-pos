@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+
+const toastUrl = (msg: string) =>
+  "/pengaturan?toast=" + encodeURIComponent(msg);
 
 export async function updateBusinessAction(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -17,6 +21,7 @@ export async function updateBusinessAction(formData: FormData): Promise<void> {
     .eq("id", 1);
 
   revalidatePath("/pengaturan");
+  redirect(toastUrl("Data usaha tersimpan"));
 }
 
 export async function addBankAccountAction(formData: FormData): Promise<void> {
@@ -32,6 +37,7 @@ export async function addBankAccountAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/pengaturan");
+  redirect(toastUrl("Rekening ditambahkan"));
 }
 
 export async function deleteBankAccountAction(formData: FormData) {

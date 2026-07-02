@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -28,6 +29,11 @@ export function PaymentForm({
       (await action(fd)) ?? null,
     null,
   );
+
+  useEffect(() => {
+    if (state?.ok) toast.success("Pembayaran tersimpan");
+    else if (state?.error) toast.error(state.error);
+  }, [state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">

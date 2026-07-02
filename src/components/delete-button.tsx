@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +28,7 @@ export function DeleteButton({
     fd.set("id", id);
     startTransition(async () => {
       await action(fd);
+      toast.success("Data berhasil dihapus");
       if (redirectTo) router.push(redirectTo);
       else router.refresh();
     });

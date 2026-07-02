@@ -73,7 +73,7 @@ export async function saveProductAction(formData: FormData) {
     }
   }
   revalidatePath("/produk");
-  redirect("/produk");
+  redirect("/produk?toast=" + encodeURIComponent("Produk berhasil disimpan"));
 }
 
 /** Penyesuaian stok (opname): set stok aktual hasil hitung fisik. */

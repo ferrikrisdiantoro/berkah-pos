@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
+import { FlashToaster } from "@/components/flash-toaster";
+import { SessionRefresher } from "@/components/session-refresher";
 
 export default async function AppLayout({
   children,
@@ -18,6 +21,10 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen">
+      <SessionRefresher />
+      <Suspense fallback={null}>
+        <FlashToaster />
+      </Suspense>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar email={user.email ?? "Pengguna"} />

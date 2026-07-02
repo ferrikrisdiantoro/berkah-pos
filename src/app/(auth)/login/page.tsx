@@ -8,16 +8,21 @@ export default async function LoginPage({
   const { next } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-sky-800 p-4">
+      <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-sky-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-blue-400/20 blur-3xl" />
+      <div className="relative w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
-            BM
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-sky-400 text-2xl shadow-lg shadow-blue-900/50">
+            🐟
           </div>
-          <h1 className="text-xl font-bold">Berkah POS</h1>
-          <p className="text-sm text-muted-foreground">UD. Berkah Mina</p>
+          <h1 className="text-2xl font-bold text-white">Berkah POS</h1>
+          <p className="text-sm text-white/70">UD. Berkah Mina</p>
         </div>
         <LoginForm next={next ?? "/"} />
+        <p className="mt-4 text-center text-xs text-white/50">
+          Sistem kasir &amp; nota — Ikan Laut, Tambak &amp; Tawar
+        </p>
       </div>
     </main>
   );

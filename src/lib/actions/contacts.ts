@@ -28,7 +28,7 @@ export async function saveContactAction(formData: FormData) {
   if (error) return { error: error.message };
 
   revalidatePath("/kontak");
-  redirect("/kontak");
+  redirect("/kontak?toast=" + encodeURIComponent("Kontak berhasil disimpan"));
 }
 
 export async function deleteContactAction(formData: FormData) {

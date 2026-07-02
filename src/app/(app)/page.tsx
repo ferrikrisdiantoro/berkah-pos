@@ -46,7 +46,8 @@ export default async function DashboardPage() {
       sub: `${purchases.length} nota pembelian`,
       icon: ShoppingCart,
       href: "/pembelian",
-      tone: "text-destructive",
+      chip: "bg-rose-100 text-rose-600",
+      ring: "hover:border-rose-200",
     },
     {
       label: "Piutang Penjualan",
@@ -54,7 +55,8 @@ export default async function DashboardPage() {
       sub: `${sales.length} nota penjualan`,
       icon: Receipt,
       href: "/penjualan",
-      tone: "text-success",
+      chip: "bg-emerald-100 text-emerald-600",
+      ring: "hover:border-emerald-200",
     },
     {
       label: "Produk Aktif",
@@ -62,7 +64,8 @@ export default async function DashboardPage() {
       sub: "master produk",
       icon: Package,
       href: "/produk",
-      tone: "text-primary",
+      chip: "bg-blue-100 text-blue-600",
+      ring: "hover:border-blue-200",
     },
     {
       label: "Perlu Restok",
@@ -70,7 +73,8 @@ export default async function DashboardPage() {
       sub: "habis / di bawah minimum",
       icon: TriangleAlert,
       href: "/produk",
-      tone: "text-warning",
+      chip: "bg-amber-100 text-amber-600",
+      ring: "hover:border-amber-200",
     },
   ];
 
@@ -78,22 +82,26 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Ringkasan aktivitas usaha.</p>
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 p-6 text-white shadow-sm">
+        <h1 className="text-2xl font-bold">Selamat datang 👋</h1>
+        <p className="mt-1 text-sm text-white/85">
+          Ringkasan aktivitas UD. Berkah Mina hari ini.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <Link key={s.label} href={s.href}>
-            <Card className="transition-shadow hover:shadow-md">
+            <Card className={`transition-all hover:shadow-md ${s.ring}`}>
               <CardContent className="flex items-start justify-between pt-5">
                 <div>
                   <p className="text-sm text-muted-foreground">{s.label}</p>
                   <p className="mt-1 text-2xl font-bold">{s.value}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{s.sub}</p>
                 </div>
-                <s.icon className={`h-6 w-6 ${s.tone}`} />
+                <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.chip}`}>
+                  <s.icon className="h-5 w-5" />
+                </span>
               </CardContent>
             </Card>
           </Link>
