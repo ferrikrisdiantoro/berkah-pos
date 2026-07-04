@@ -10,22 +10,26 @@ import {
   Users,
   BarChart3,
   Settings,
+  UserCog,
   Fish,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Role } from "@/lib/auth";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/pembelian", label: "Pembelian", icon: ShoppingCart },
-  { href: "/penjualan", label: "Penjualan", icon: Receipt },
-  { href: "/produk", label: "Produk", icon: Package },
-  { href: "/kontak", label: "Kontak", icon: Users },
-  { href: "/laporan", label: "Laporan", icon: BarChart3 },
-  { href: "/pengaturan", label: "Pengaturan", icon: Settings },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, master: false },
+  { href: "/pembelian", label: "Pembelian", icon: ShoppingCart, master: false },
+  { href: "/penjualan", label: "Penjualan", icon: Receipt, master: false },
+  { href: "/produk", label: "Produk", icon: Package, master: false },
+  { href: "/kontak", label: "Kontak", icon: Users, master: false },
+  { href: "/laporan", label: "Laporan", icon: BarChart3, master: true },
+  { href: "/pengguna", label: "Pengguna", icon: UserCog, master: true },
+  { href: "/pengaturan", label: "Pengaturan", icon: Settings, master: true },
 ];
 
-export function Sidebar() {
+export function Sidebar({ role }: { role: Role }) {
   const pathname = usePathname();
+  const items = NAV.filter((n) => !n.master || role === "owner");
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -42,7 +46,7 @@ export function Sidebar() {
         </div>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           return (
             <Link

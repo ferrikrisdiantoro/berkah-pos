@@ -41,7 +41,10 @@ export async function updateSession(request: NextRequest) {
   const isPublic =
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
-    pathname.startsWith("/share"); // halaman invoice publik
+    pathname.startsWith("/share") || // halaman invoice publik
+    pathname.startsWith("/icons") || // ikon PWA
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/sw.js";
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();

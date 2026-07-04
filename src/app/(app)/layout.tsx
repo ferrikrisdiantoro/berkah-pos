@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { FlashToaster } from "@/components/flash-toaster";
@@ -11,11 +11,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getCurrentUser();
   // proxy.ts sudah menjaga, tapi periksa lagi demi keamanan.
   if (!user) redirect("/login");
 
@@ -25,9 +21,9 @@ export default async function AppLayout({
       <Suspense fallback={null}>
         <FlashToaster />
       </Suspense>
-      <Sidebar />
+      <Sidebar role={user.role} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar email={user.email ?? "Pengguna"} />
+        <Topbar email={user.email} role={user.role} />
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>

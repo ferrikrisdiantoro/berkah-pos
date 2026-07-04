@@ -13,9 +13,12 @@ import {
 } from "@/lib/actions/settings";
 import type { BankAccount, BusinessSettings } from "@/lib/types";
 
+import { requireMaster } from "@/lib/auth";
+
 export const dynamic = "force-dynamic";
 
 export default async function PengaturanPage() {
+  await requireMaster();
   const supabase = await createClient();
   const [{ data: biz }, { data: accounts }] = await Promise.all([
     supabase.from("business_settings").select("*").eq("id", 1).single(),

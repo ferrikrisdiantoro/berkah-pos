@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
+import { SwRegister } from "@/components/sw-register";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,6 +12,19 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Berkah POS",
   description: "Aplikasi POS & nota pembelian/penjualan — UD. Berkah Mina",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Berkah POS",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -20,6 +34,7 @@ export default function RootLayout({
     <html lang="id" className={`${geistSans.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full" suppressHydrationWarning>
         {children}
+        <SwRegister />
         <Toaster richColors closeButton position="top-center" />
       </body>
     </html>

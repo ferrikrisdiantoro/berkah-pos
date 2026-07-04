@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireMaster } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
@@ -27,6 +28,7 @@ function groupOutstanding(rows: DocRow[]) {
 }
 
 export default async function LaporanPage() {
+  await requireMaster();
   const supabase = await createClient();
   const [{ data: purchases }, { data: sales }, { data: products }] = await Promise.all([
     supabase.from("purchases").select("total, paid_total, status, contact:contacts(name)"),
