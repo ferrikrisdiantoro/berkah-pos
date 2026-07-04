@@ -2,30 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  ShoppingCart,
-  Receipt,
-  Package,
-  Users,
-  BarChart3,
-  Settings,
-  UserCog,
-  Fish,
-} from "lucide-react";
+import { Fish } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NAV } from "@/lib/nav";
 import type { Role } from "@/lib/auth";
-
-const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, master: false },
-  { href: "/pembelian", label: "Pembelian", icon: ShoppingCart, master: false },
-  { href: "/penjualan", label: "Penjualan", icon: Receipt, master: false },
-  { href: "/produk", label: "Produk", icon: Package, master: false },
-  { href: "/kontak", label: "Kontak", icon: Users, master: false },
-  { href: "/laporan", label: "Laporan", icon: BarChart3, master: true },
-  { href: "/pengguna", label: "Pengguna", icon: UserCog, master: true },
-  { href: "/pengaturan", label: "Pengaturan", icon: Settings, master: true },
-];
 
 export function Sidebar({ role }: { role: Role }) {
   const pathname = usePathname();
