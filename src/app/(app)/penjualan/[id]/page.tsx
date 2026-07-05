@@ -69,7 +69,11 @@ export default async function SaleDetailPage({
         >
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
-        <InvoiceToolbar editHref={`/penjualan/${s.id}/edit`} shareUrl={shareUrl} />
+        <InvoiceToolbar
+          editHref={`/penjualan/${s.id}/edit`}
+          shareUrl={shareUrl}
+          strukHref={`/penjualan/${s.id}/struk`}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">

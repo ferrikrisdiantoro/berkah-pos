@@ -72,7 +72,11 @@ export default async function PurchaseDetailPage({
         >
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
-        <InvoiceToolbar editHref={`/pembelian/${p.id}/edit`} shareUrl={shareUrl} />
+        <InvoiceToolbar
+          editHref={`/pembelian/${p.id}/edit`}
+          shareUrl={shareUrl}
+          strukHref={`/pembelian/${p.id}/struk`}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">

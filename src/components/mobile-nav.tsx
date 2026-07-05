@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Fish } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "@/lib/nav";
 import type { Role } from "@/lib/auth";
@@ -41,8 +41,9 @@ export function MobileNav({ role }: { role: Role }) {
           <aside className="absolute left-0 top-0 flex h-full w-64 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-sidebar-foreground shadow-xl">
             <div className="flex h-16 items-center justify-between px-4">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-sky-400 text-white">
-                  <Fish className="h-5 w-5" />
+                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-0.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logo.jpeg" alt="Logo" className="h-full w-full object-contain" />
                 </div>
                 <div className="leading-tight">
                   <div className="text-sm font-bold text-white">Berkah POS</div>

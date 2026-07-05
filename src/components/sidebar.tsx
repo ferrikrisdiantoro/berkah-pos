@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fish } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "@/lib/nav";
 import type { Role } from "@/lib/auth";
@@ -17,8 +16,9 @@ export function Sidebar({ role }: { role: Role }) {
   return (
     <aside className="hidden w-60 shrink-0 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-sidebar-foreground md:flex">
       <div className="flex h-16 items-center gap-2.5 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-sky-400 text-white shadow-md shadow-blue-900/40">
-          <Fish className="h-5 w-5" />
+        <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.jpeg" alt="Logo" className="h-full w-full object-contain" />
         </div>
         <div className="leading-tight">
           <div className="text-sm font-bold text-white">Berkah POS</div>

@@ -50,9 +50,18 @@ export function InvoiceDocument({
       {/* Header */}
       <div className="flex items-start justify-between border-b border-slate-200 pb-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-lg font-bold text-white">
-            {(b.name ?? "BM").slice(0, 2).toUpperCase()}
-          </div>
+          {b.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={b.logo_url}
+              alt="Logo"
+              className="h-16 w-16 rounded-lg object-contain"
+            />
+          ) : (
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-lg font-bold text-white">
+              {(b.name ?? "BM").slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div>
             <div className="text-lg font-bold text-slate-900">
               {b.name ?? "UD. Berkah Mina"}
