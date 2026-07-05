@@ -64,7 +64,7 @@ export function InvoiceDocument({
           )}
           <div>
             <div className="text-lg font-bold text-slate-900">
-              {b.name ?? "UD. Berkah Mina"}
+              {b.name ?? "WL Pemburu Bandeng"}
             </div>
             {b.address && (
               <div className="max-w-xs text-xs text-slate-500">{b.address}</div>
@@ -182,7 +182,7 @@ export function InvoiceDocument({
           {doc.notes && <p className="italic">{doc.notes}</p>}
           {b.footer_note && <p className="mt-1">{b.footer_note}</p>}
           <p className="mt-3 font-semibold text-slate-700">
-            ----- {b.name ?? "UD. Berkah Mina"} -----
+            ----- {b.name ?? "WL Pemburu Bandeng"} -----
           </p>
         </div>
       )}

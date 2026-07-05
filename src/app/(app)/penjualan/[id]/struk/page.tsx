@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ReceiptDocument } from "@/components/receipt-document";
 import { ReceiptActions } from "@/components/receipt-actions";
-import type { InvoicePayment } from "@/components/invoice-document";
 import type { BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -34,23 +33,8 @@ export default async function StrukPenjualanPage({
   ]);
   if (!sale) notFound();
 
-  const { data: payRows } = await supabase
-    .from("payments")
-    .select("date, amount, method, account:bank_accounts(name)")
-    .eq("sale_id", id)
-    .order("date");
-
   const s = sale as unknown as Sale & { contact: Contact | null; items: DocItem[] };
   const items = [...(s.items ?? [])].sort((a, b) => a.position - b.position);
-  const payments = (payRows ?? []).map((r) => {
-    const acc = r.account as { name?: string } | { name?: string }[] | null;
-    return {
-      date: r.date,
-      amount: Number(r.amount),
-      method: r.method,
-      account: Array.isArray(acc) ? acc[0]?.name ?? null : acc?.name ?? null,
-    } as InvoicePayment;
-  });
 
   return (
     <div className="min-h-screen bg-muted">
@@ -62,7 +46,6 @@ export default async function StrukPenjualanPage({
           doc={s}
           contact={s.contact}
           items={items}
-          payments={payments}
           docType="sale"
         />
       </div>

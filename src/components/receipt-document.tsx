@@ -1,6 +1,5 @@
 import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
 import { STATUS_LABEL, type BusinessSettings, type Contact, type DocItem, type DocStatus, type Purchase } from "@/lib/types";
-import type { InvoicePayment } from "@/components/invoice-document";
 
 const TITLE = { purchase: "NOTA PEMBELIAN", sale: "NOTA PENJUALAN" };
 
@@ -13,14 +12,12 @@ export function ReceiptDocument({
   doc,
   contact,
   items,
-  payments,
   docType,
 }: {
   business: Partial<BusinessSettings> | null;
   doc: Pick<Purchase, "number" | "date" | "due_date" | "status" | "subtotal" | "discount_total" | "tax_total" | "total" | "paid_total" | "notes">;
   contact: Partial<Contact> | null;
   items: DocItem[];
-  payments: InvoicePayment[];
   docType: "purchase" | "sale";
 }) {
   const b = business ?? {};
@@ -34,7 +31,7 @@ export function ReceiptDocument({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={b.logo_url} alt="Logo" className="mx-auto mb-1 h-12 w-12 object-contain" />
         )}
-        <div className="text-[13px] font-bold leading-tight">{b.name ?? "UD. Berkah Mina"}</div>
+        <div className="text-[13px] font-bold leading-tight">{b.name ?? "WL Pemburu Bandeng"}</div>
         {b.address && <div className="text-[9px] leading-tight">{b.address}</div>}
         {b.phone && <div className="text-[9px]">Telp: {b.phone}</div>}
       </div>
@@ -97,7 +94,7 @@ export function ReceiptDocument({
 
       <div className="text-center text-[9px] leading-tight">
         {b.footer_note && <div>{b.footer_note}</div>}
-        <div className="mt-1">--- {b.name ?? "UD. Berkah Mina"} ---</div>
+        <div className="mt-1">--- {b.name ?? "WL Pemburu Bandeng"} ---</div>
       </div>
     </div>
   );

@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Berkah POS — UD. Berkah Mina",
+    name: "Berkah POS — WL Pemburu Bandeng",
     short_name: "Berkah POS",
-    description: "Aplikasi kasir & nota pembelian/penjualan UD. Berkah Mina",
+    description: "Aplikasi kasir & nota pembelian/penjualan WL Pemburu Bandeng",
     start_url: "/",
     scope: "/",
     display: "standalone",

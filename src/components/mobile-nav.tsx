@@ -48,7 +48,7 @@ export function MobileNav({ role }: { role: Role }) {
                 <div className="leading-tight">
                   <div className="text-sm font-bold text-white">Berkah POS</div>
                   <div className="text-xs text-sidebar-foreground/70">
-                    UD. Berkah Mina
+                    WL Pemburu Bandeng
                   </div>
                 </div>
               </div>

@@ -12,7 +12,7 @@ export async function updateBusinessAction(formData: FormData): Promise<void> {
   await supabase
     .from("business_settings")
     .update({
-      name: String(formData.get("name") ?? "").trim() || "UD. Berkah Mina",
+      name: String(formData.get("name") ?? "").trim() || "WL Pemburu Bandeng",
       address: String(formData.get("address") ?? "").trim() || null,
       phone: String(formData.get("phone") ?? "").trim() || null,
       email: String(formData.get("email") ?? "").trim() || null,

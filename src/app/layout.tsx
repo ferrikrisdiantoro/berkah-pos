@@ -11,7 +11,7 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "Berkah POS",
-  description: "Aplikasi POS & nota pembelian/penjualan — UD. Berkah Mina",
+  description: "Aplikasi POS & nota pembelian/penjualan — WL Pemburu Bandeng",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

@@ -85,7 +85,7 @@ export default async function DashboardPage() {
       <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 p-6 text-white shadow-sm">
         <h1 className="text-2xl font-bold">Selamat datang 👋</h1>
         <p className="mt-1 text-sm text-white/85">
-          Ringkasan aktivitas UD. Berkah Mina hari ini.
+          Ringkasan aktivitas WL Pemburu Bandeng hari ini.
         </p>
       </div>
 

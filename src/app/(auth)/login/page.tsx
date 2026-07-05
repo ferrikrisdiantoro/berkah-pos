@@ -18,7 +18,7 @@ export default async function LoginPage({
             <img src="/logo.jpeg" alt="Logo" className="h-full w-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-white">Berkah POS</h1>
-          <p className="text-sm text-white/70">UD. Berkah Mina</p>
+          <p className="text-sm text-white/70">WL Pemburu Bandeng</p>
         </div>
         <LoginForm next={next ?? "/"} />
         <p className="mt-4 text-center text-xs text-white/50">

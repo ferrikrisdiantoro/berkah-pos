@@ -22,7 +22,7 @@ export function Sidebar({ role }: { role: Role }) {
         </div>
         <div className="leading-tight">
           <div className="text-sm font-bold text-white">Berkah POS</div>
-          <div className="text-xs text-sidebar-foreground/70">UD. Berkah Mina</div>
+          <div className="text-xs text-sidebar-foreground/70">WL Pemburu Bandeng</div>
         </div>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
