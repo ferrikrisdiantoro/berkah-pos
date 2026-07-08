@@ -11,9 +11,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatRupiah, todayISO } from "@/lib/utils";
 import type { Contact, DocItem, Product } from "@/lib/types";
 
+export type ConsignmentOption = {
+  id: string;
+  label: string; // teks di dropdown
+  desc: string; // deskripsi baris nota
+  base_price: number;
+};
+
 type Row = {
   key: string;
   product_id: string | null;
+  consignment_id: string | null;
   description: string;
   qty: number;
   unit_price: number;
@@ -34,6 +42,7 @@ let rowSeq = 0;
 const newRow = (): Row => ({
   key: `r${rowSeq++}`,
   product_id: null,
+  consignment_id: null,
   description: "",
   qty: 1,
   unit_price: 0,
@@ -50,12 +59,14 @@ export function InvoiceEditor({
   products,
   action,
   initial,
+  consignments,
 }: {
   kind: "purchase" | "sale";
   contacts: Contact[];
   products: Product[];
   action: (formData: FormData) => Promise<{ error?: string } | void>;
   initial?: InvoiceInitial;
+  consignments?: ConsignmentOption[];
 }) {
   const [contactId, setContactId] = useState(initial?.contact_id ?? "");
   const [date, setDate] = useState(initial?.date ?? todayISO());
@@ -66,6 +77,7 @@ export function InvoiceEditor({
       ? initial.items.map((it) => ({
           key: `r${rowSeq++}`,
           product_id: it.product_id,
+          consignment_id: it.consignment_id ?? null,
           description: it.description,
           qty: Number(it.qty),
           unit_price: Number(it.unit_price),
@@ -97,6 +109,20 @@ export function InvoiceEditor({
     });
   }
 
+  function pickConsignment(key: string, id: string) {
+    if (!id) {
+      update(key, { consignment_id: null });
+      return;
+    }
+    const c = consignments?.find((x) => x.id === id);
+    update(key, {
+      consignment_id: id,
+      product_id: null,
+      description: c ? c.desc : "",
+      unit_price: c && c.base_price > 0 ? c.base_price : 0,
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -104,6 +130,7 @@ export function InvoiceEditor({
       .filter((r) => r.description.trim() && r.qty > 0)
       .map((r) => ({
         product_id: r.product_id,
+        consignment_id: r.consignment_id,
         description: r.description.trim(),
         qty: r.qty,
         unit_price: r.unit_price,
@@ -177,10 +204,25 @@ export function InvoiceEditor({
                 {rows.map((r) => (
                   <tr key={r.key} className="border-b border-border/60 align-top">
                     <td className="py-2 pr-2">
+                      {consignments && consignments.length > 0 && (
+                        <Select
+                          className="mb-1 h-9 border-amber-300 bg-amber-50"
+                          value={r.consignment_id ?? ""}
+                          onChange={(e) => pickConsignment(r.key, e.target.value)}
+                        >
+                          <option value="">— Barang titipan? (opsional) —</option>
+                          {consignments.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.label}
+                            </option>
+                          ))}
+                        </Select>
+                      )}
                       <Select
                         className="mb-1 h-9"
                         value={r.product_id ?? ""}
                         onChange={(e) => pickProduct(r.key, e.target.value)}
+                        disabled={!!r.consignment_id}
                       >
                         <option value="">— Produk / manual —</option>
                         {products.map((p) => (

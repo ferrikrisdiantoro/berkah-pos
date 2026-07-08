@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 type ItemInput = {
   product_id: string | null;
+  consignment_id: string | null;
   description: string;
   qty: number;
   unit_price: number;
@@ -26,6 +27,7 @@ function parseItems(raw: string): ItemInput[] {
       const o = x as Record<string, unknown>;
       return {
         product_id: (o.product_id as string) || null,
+        consignment_id: (o.consignment_id as string) || null,
         description: String(o.description ?? "").trim(),
         qty: Number(o.qty) || 0,
         unit_price: Number(o.unit_price) || 0,
@@ -89,6 +91,7 @@ export async function saveSaleAction(formData: FormData) {
   const rows = items.map((it, idx) => ({
     sale_id: saleId,
     product_id: it.product_id,
+    consignment_id: it.consignment_id,
     description: it.description,
     qty: it.qty,
     unit_price: it.unit_price,

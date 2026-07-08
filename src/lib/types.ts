@@ -70,6 +70,37 @@ export interface DocItem {
   tax_pct: number;
   line_total: number;
   position: number;
+  consignment_id?: string | null;
+  owner_id?: string | null;
+  commission_amount?: number;
+  owner_amount?: number;
+}
+
+export type CommissionType = "percent" | "fixed_per_unit";
+
+export interface Consignment {
+  id: string;
+  received_date: string;
+  owner_id: string;
+  product_id: string | null;
+  product_name: string;
+  unit: string | null;
+  qty_in: number;
+  qty_remaining: number;
+  base_price: number;
+  commission_type: CommissionType;
+  commission_value: number;
+  status: "open" | "closed";
+  notes: string | null;
+  owner?: Contact | null;
+}
+
+export interface OwnerPayment {
+  id: string;
+  owner_id: string;
+  date: string;
+  amount: number;
+  notes: string | null;
 }
 
 export interface Purchase {

@@ -30,14 +30,24 @@ function groupOutstanding(rows: DocRow[]) {
 export default async function LaporanPage() {
   await requireMaster();
   const supabase = await createClient();
-  const [{ data: purchases }, { data: sales }, { data: products }] = await Promise.all([
-    supabase.from("purchases").select("total, paid_total, status, contact:contacts(name)"),
-    supabase.from("sales").select("total, paid_total, status, contact:contacts(name)"),
-    supabase
-      .from("products")
-      .select("name, stock, buy_price, track_stock, unit:units(name)")
-      .eq("is_active", true),
-  ]);
+  const [{ data: purchases }, { data: sales }, { data: products }, { data: consignItems }] =
+    await Promise.all([
+      supabase.from("purchases").select("total, paid_total, status, contact:contacts(name)"),
+      supabase.from("sales").select("total, paid_total, status, contact:contacts(name)"),
+      supabase
+        .from("products")
+        .select("name, stock, buy_price, track_stock, unit:units(name)")
+        .eq("is_active", true),
+      supabase
+        .from("sale_items")
+        .select("commission_amount, owner_amount")
+        .not("consignment_id", "is", null),
+    ]);
+
+  const komisiToko = (consignItems ?? []).reduce(
+    (s, i) => s + Number(i.commission_amount),
+    0,
+  );
 
   const hutang = groupOutstanding((purchases ?? []) as DocRow[]);
   const piutang = groupOutstanding((sales ?? []) as DocRow[]);
@@ -57,9 +67,10 @@ export default async function LaporanPage() {
     <div>
       <PageHeader title="Laporan" subtitle="Hutang, piutang, dan nilai stok." />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard label="Total Hutang" value={formatRupiah(totalHutang)} tone="text-destructive" />
         <SummaryCard label="Total Piutang" value={formatRupiah(totalPiutang)} tone="text-success" />
+        <SummaryCard label="Komisi Toko (Titipan)" value={formatRupiah(komisiToko)} tone="text-primary" />
         <SummaryCard label="Nilai Stok" value={formatRupiah(nilaiStok)} tone="text-primary" />
       </div>
 

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { InvoiceEditor, type InvoiceInitial } from "@/components/invoice-editor";
 import { saveSaleAction } from "@/lib/actions/sales";
+import { getConsignmentOptions } from "@/lib/consignment-options";
 import type { Contact, DocItem, Product, Sale } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -15,16 +16,18 @@ export default async function EditSalePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: sale }, { data: contacts }, { data: products }] = await Promise.all([
-    supabase.from("sales").select("*, items:sale_items(*)").eq("id", id).single(),
-    supabase
-      .from("contacts")
-      .select("*")
-      .eq("is_active", true)
-      .in("type", ["customer", "both"])
-      .order("name"),
-    supabase.from("products").select("*").eq("is_active", true).order("name"),
-  ]);
+  const [{ data: sale }, { data: contacts }, { data: products }, consignments] =
+    await Promise.all([
+      supabase.from("sales").select("*, items:sale_items(*)").eq("id", id).single(),
+      supabase
+        .from("contacts")
+        .select("*")
+        .eq("is_active", true)
+        .in("type", ["customer", "both"])
+        .order("name"),
+      supabase.from("products").select("*").eq("is_active", true).order("name"),
+      getConsignmentOptions(),
+    ]);
 
   if (!sale) notFound();
   const s = sale as unknown as Sale & { items: DocItem[] };
@@ -48,6 +51,7 @@ export default async function EditSalePage({
         products={(products ?? []) as Product[]}
         action={saveSaleAction}
         initial={initial}
+        consignments={consignments}
       />
     </div>
   );
