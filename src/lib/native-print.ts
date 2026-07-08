@@ -74,10 +74,20 @@ export function isNativeApp(): boolean {
   return !!cap?.isNativePlatform?.();
 }
 
+interface BluetoothPrinterPlugin {
+  getPaired: () => Promise<{ devices: { name?: string; address: string }[] }>;
+  printText: (opts: { address: string; text: string }) => Promise<unknown>;
+}
+
+const PRINTER_KEY = "berkahpos_printer_addr";
+
+export function clearSavedPrinter() {
+  if (typeof localStorage !== "undefined") localStorage.removeItem(PRINTER_KEY);
+}
+
 /**
- * Kirim teks struk ke printer Bluetooth via plugin native.
- * Integrasi plugin dilakukan di aplikasi Capacitor (lihat berkah-pos-apk/README-BUILD-APK.md).
- * Kita panggil lewat window.Capacitor.Plugins agar tetap berfungsi walau halaman di-load remote.
+ * Kirim struk ke printer Bluetooth via plugin native BluetoothPrinter
+ * (Bluetooth Classic / ESC-POS). Printer dipilih sekali lalu diingat.
  */
 export async function printReceiptNative(
   text: string,
@@ -85,27 +95,41 @@ export async function printReceiptNative(
   const cap = (window as unknown as {
     Capacitor?: { Plugins?: Record<string, unknown> };
   }).Capacitor;
-  const plugins = cap?.Plugins ?? {};
-  // Nama plugin bisa berbeda tergantung yang dipasang; coba beberapa yang umum.
-  const printer =
-    (plugins["ThermalPrinter"] as PrinterPlugin | undefined) ??
-    (plugins["BluetoothPrinter"] as PrinterPlugin | undefined) ??
-    (plugins["CapacitorThermalPrinter"] as PrinterPlugin | undefined);
+  const printer = cap?.Plugins?.["BluetoothPrinter"] as BluetoothPrinterPlugin | undefined;
 
-  if (!printer || typeof printer.print !== "function") {
-    return {
-      ok: false,
-      error: "Plugin printer belum aktif di aplikasi. Cek pemasangan di app native.",
-    };
+  if (!printer || typeof printer.printText !== "function") {
+    return { ok: false, error: "Plugin printer belum aktif. Buka lewat aplikasi (APK)." };
   }
+
   try {
-    await printer.print({ text });
+    let address = localStorage.getItem(PRINTER_KEY);
+    if (!address) {
+      const { devices } = await printer.getPaired();
+      if (!devices || devices.length === 0) {
+        return {
+          ok: false,
+          error: "Belum ada printer ter-pair. Pair dulu di Setelan Bluetooth HP.",
+        };
+      }
+      if (devices.length === 1) {
+        address = devices[0].address;
+      } else {
+        const list = devices.map((d, i) => `${i + 1}. ${d.name || d.address}`).join("\n");
+        const choice = window.prompt(`Pilih printer:\n${list}`, "1");
+        const idx = Number(choice) - 1;
+        if (Number.isNaN(idx) || idx < 0 || idx >= devices.length) {
+          return { ok: false, error: "Pemilihan printer dibatalkan." };
+        }
+        address = devices[idx].address;
+      }
+      localStorage.setItem(PRINTER_KEY, address);
+    }
+
+    await printer.printText({ address, text });
     return { ok: true };
   } catch (e) {
+    // Reset pilihan agar bisa pilih ulang printer lain di percobaan berikutnya.
+    clearSavedPrinter();
     return { ok: false, error: e instanceof Error ? e.message : "Gagal mencetak." };
   }
-}
-
-interface PrinterPlugin {
-  print: (opts: { text: string }) => Promise<unknown>;
 }
