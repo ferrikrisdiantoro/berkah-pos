@@ -27,8 +27,13 @@ function groupOutstanding(rows: DocRow[]) {
   return [...map.entries()].sort((a, b) => b[1] - a[1]);
 }
 
-export default async function LaporanPage() {
+export default async function LaporanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
   await requireMaster();
+  const { from, to } = await searchParams;
   const supabase = await createClient();
   const [{ data: purchases }, { data: sales }, { data: products }, { data: consignItems }] =
     await Promise.all([
@@ -49,6 +54,21 @@ export default async function LaporanPage() {
     0,
   );
 
+  // Ringkasan periode (opsional, filter tanggal)
+  let salesQ = supabase.from("sales").select("total, date");
+  let purchQ = supabase.from("purchases").select("total, date");
+  if (from) {
+    salesQ = salesQ.gte("date", from);
+    purchQ = purchQ.gte("date", from);
+  }
+  if (to) {
+    salesQ = salesQ.lte("date", to);
+    purchQ = purchQ.lte("date", to);
+  }
+  const [{ data: pSales }, { data: pPurch }] = await Promise.all([salesQ, purchQ]);
+  const periodSales = (pSales ?? []).reduce((s, r) => s + Number(r.total), 0);
+  const periodPurch = (pPurch ?? []).reduce((s, r) => s + Number(r.total), 0);
+
   const hutang = groupOutstanding((purchases ?? []) as DocRow[]);
   const piutang = groupOutstanding((sales ?? []) as DocRow[]);
   const stok = ((products ?? []) as {
@@ -65,7 +85,50 @@ export default async function LaporanPage() {
 
   return (
     <div>
-      <PageHeader title="Laporan" subtitle="Hutang, piutang, dan nilai stok." />
+      <PageHeader title="Laporan" subtitle="Ringkasan usaha & rekap periode." />
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Ringkasan Periode</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form method="get" className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm text-muted-foreground" htmlFor="from">Dari</label>
+              <input
+                id="from"
+                name="from"
+                type="date"
+                defaultValue={from ?? ""}
+                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm text-muted-foreground" htmlFor="to">Sampai</label>
+              <input
+                id="to"
+                name="to"
+                type="date"
+                defaultValue={to ?? ""}
+                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+              />
+            </div>
+            <button className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
+              Tampilkan
+            </button>
+          </form>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-border p-4">
+              <p className="text-sm text-muted-foreground">Penjualan {from || to ? "(periode)" : "(semua)"}</p>
+              <p className="mt-1 text-xl font-bold text-success">{formatRupiah(periodSales)}</p>
+            </div>
+            <div className="rounded-lg border border-border p-4">
+              <p className="text-sm text-muted-foreground">Pembelian {from || to ? "(periode)" : "(semua)"}</p>
+              <p className="mt-1 text-xl font-bold text-destructive">{formatRupiah(periodPurch)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard label="Total Hutang" value={formatRupiah(totalHutang)} tone="text-destructive" />

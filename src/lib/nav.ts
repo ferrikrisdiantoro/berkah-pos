@@ -9,6 +9,8 @@ import {
   BarChart3,
   Settings,
   UserCog,
+  Wallet,
+  Scale,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +30,8 @@ export const NAV: NavItem[] = [
   { href: "/titipan", label: "Titipan", icon: PackageOpen, master: false },
   { href: "/hak-pemilik", label: "Hak Pemilik", icon: HandCoins, master: false },
   { href: "/kontak", label: "Kontak", icon: Users, master: false },
+  { href: "/kas", label: "Buku Kas", icon: Wallet, master: true },
+  { href: "/hutang-piutang", label: "Hutang & Piutang", icon: Scale, master: true },
   { href: "/laporan", label: "Laporan", icon: BarChart3, master: true },
   { href: "/pengguna", label: "Pengguna", icon: UserCog, master: true },
   { href: "/pengaturan", label: "Pengaturan", icon: Settings, master: true },
