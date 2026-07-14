@@ -122,21 +122,57 @@ export async function addSalePaymentAction(formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   if (!saleId || !amount || amount <= 0) return { error: "Nominal tidak valid." };
 
+  // Item yang dipilih untuk dibayar duluan (boleh kosong = pembayaran umum/DP).
+  const itemIds = formData.getAll("item_ids").map(String).filter(Boolean);
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from("payments").insert({
-    kind: "sale",
-    sale_id: saleId,
-    account_id: String(formData.get("account_id") ?? "") || null,
-    date: String(formData.get("date") ?? "") || undefined,
-    amount,
-    method: String(formData.get("method") ?? "").trim() || null,
-    notes: String(formData.get("notes") ?? "").trim() || null,
-    created_by: user?.id ?? null,
-  });
-  if (error) return { error: error.message };
+  const { data: payment, error } = await supabase
+    .from("payments")
+    .insert({
+      kind: "sale",
+      sale_id: saleId,
+      account_id: String(formData.get("account_id") ?? "") || null,
+      date: String(formData.get("date") ?? "") || undefined,
+      amount,
+      method: String(formData.get("method") ?? "").trim() || null,
+      notes: String(formData.get("notes") ?? "").trim() || null,
+      created_by: user?.id ?? null,
+    })
+    .select("id")
+    .single();
+  if (error || !payment) return { error: error?.message ?? "Gagal mencatat pembayaran." };
+
+  if (itemIds.length > 0) {
+    // Sisa per item = line_total - yang sudah dialokasikan.
+    const [{ data: items }, { data: allocs }] = await Promise.all([
+      supabase.from("sale_items").select("id, line_total").in("id", itemIds),
+      supabase.from("payment_allocations").select("sale_item_id, amount").in("sale_item_id", itemIds),
+    ]);
+
+    const paidBy = new Map<string, number>();
+    for (const a of allocs ?? []) {
+      paidBy.set(a.sale_item_id, (paidBy.get(a.sale_item_id) ?? 0) + Number(a.amount));
+    }
+
+    // Bagikan nominal ke item sesuai urutan pilihan sampai habis (mendukung DP).
+    let left = amount;
+    const rows: { payment_id: string; sale_item_id: string; amount: number }[] = [];
+    for (const id of itemIds) {
+      if (left <= 0) break;
+      const item = (items ?? []).find((x) => x.id === id);
+      if (!item) continue;
+      const outstanding = Number(item.line_total) - (paidBy.get(id) ?? 0);
+      if (outstanding <= 0) continue;
+      const alloc = Math.min(left, outstanding);
+      rows.push({ payment_id: payment.id, sale_item_id: id, amount: alloc });
+      left -= alloc;
+    }
+    if (rows.length > 0) await supabase.from("payment_allocations").insert(rows);
+  }
+
   revalidatePath(`/penjualan/${saleId}`);
   return { ok: true };
 }

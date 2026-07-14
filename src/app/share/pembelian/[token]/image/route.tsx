@@ -1,0 +1,46 @@
+import { createClient } from "@/lib/supabase/server";
+import { renderReceiptImage } from "@/lib/receipt-image";
+import { getBaseUrl } from "@/lib/base-url";
+import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
+import type { DocItem } from "@/lib/types";
+import type { ReceiptData } from "@/lib/native-print";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ token: string }> },
+) {
+  const { token } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_shared_purchase", { p_token: token });
+  if (!data || !data.purchase) return new Response("Not found", { status: 404 });
+
+  const p = data.purchase;
+  const b = data.business ?? {};
+  const items = ((data.items ?? []) as DocItem[]).sort((a, b2) => a.position - b2.position);
+
+  const receipt: ReceiptData = {
+    storeName: b.name ?? "WL Pemburu Bandeng",
+    address: b.address,
+    phone: b.phone,
+    footer: b.footer_note,
+    title: "NOTA PEMBELIAN",
+    number: p.number,
+    dateLabel: formatTanggal(p.date),
+    contactRole: "Supplier",
+    contactName: data.contact?.name ?? "-",
+    items: items.map((it) => ({
+      description: it.description,
+      qtyPrice: `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
+      total: formatRupiah(it.line_total),
+    })),
+    subtotal: formatRupiah(p.subtotal),
+    total: formatRupiah(p.total),
+    bayar: formatRupiah(p.paid_total),
+    sisa: formatRupiah(Math.max(0, Number(p.total) - Number(p.paid_total))),
+  };
+
+  const logo = b.logo_url ? `${await getBaseUrl()}${b.logo_url}` : null;
+  return renderReceiptImage(receipt, logo);
+}

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function saveConsignmentAction(formData: FormData) {
   const supabase = await createClient();
 
+  const id = String(formData.get("id") ?? "");
   const ownerId = String(formData.get("owner_id") ?? "");
   const productName = String(formData.get("product_name") ?? "").trim();
   const qtyIn = Number(formData.get("qty_in") ?? 0) || 0;
@@ -21,22 +22,52 @@ export async function saveConsignmentAction(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from("consignments").insert({
+  const base = {
     owner_id: ownerId,
     product_id: String(formData.get("product_id") ?? "") || null,
     product_name: productName,
     unit: String(formData.get("unit") ?? "").trim() || null,
-    qty_in: qtyIn,
-    qty_remaining: qtyIn,
+    // Harga titip boleh dikosongkan (belum tahu harga) -> 0.
     base_price: Number(formData.get("base_price") ?? 0) || 0,
     commission_type: commissionType === "fixed_per_unit" ? "fixed_per_unit" : "percent",
     commission_value: Math.max(0, commissionValue),
     received_date: String(formData.get("received_date") ?? "") || undefined,
     notes: String(formData.get("notes") ?? "").trim() || null,
-    created_by: user?.id ?? null,
-  });
+  };
 
-  if (error) return { error: error.message };
+  if (id) {
+    // Ubah jumlah titip -> sisa ikut bergeser sebesar selisihnya (yang sudah
+    // terjual tetap terhitung).
+    const { data: cur } = await supabase
+      .from("consignments")
+      .select("qty_in, qty_remaining")
+      .eq("id", id)
+      .single();
+    if (!cur) return { error: "Titipan tidak ditemukan." };
+
+    const delta = qtyIn - Number(cur.qty_in);
+    const newRemaining = Math.max(0, Number(cur.qty_remaining) + delta);
+
+    const { error } = await supabase
+      .from("consignments")
+      .update({
+        ...base,
+        qty_in: qtyIn,
+        qty_remaining: newRemaining,
+        status: newRemaining <= 0 ? "closed" : "open",
+      })
+      .eq("id", id);
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase.from("consignments").insert({
+      ...base,
+      qty_in: qtyIn,
+      qty_remaining: qtyIn,
+      created_by: user?.id ?? null,
+    });
+    if (error) return { error: error.message };
+  }
+
   revalidatePath("/titipan");
   redirect("/titipan?toast=" + encodeURIComponent("Barang titipan tersimpan"));
 }

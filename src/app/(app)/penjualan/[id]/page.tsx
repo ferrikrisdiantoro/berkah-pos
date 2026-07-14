@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { InvoiceDocument, type InvoicePayment } from "@/components/invoice-document";
 import { InvoiceToolbar } from "@/components/invoice-toolbar";
-import { PaymentForm } from "@/components/payment-form";
-import { DeleteButton } from "@/components/delete-button";
+import { Badge } from "@/components/ui/badge";
 import {
-  addSalePaymentAction,
-  deleteSalePaymentAction,
-  deleteSaleAction,
-} from "@/lib/actions/sales";
+  SalePaymentForm,
+  type PayableItem,
+} from "@/components/sale-payment-form";
+import { DeleteButton } from "@/components/delete-button";
+import { deleteSalePaymentAction, deleteSaleAction } from "@/lib/actions/sales";
 import { formatRupiah, formatTanggal } from "@/lib/utils";
 import { getBaseUrl } from "@/lib/base-url";
 import type { BankAccount, BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
@@ -57,8 +57,38 @@ export default async function SaleDetailPage({
     } as InvoicePayment;
   });
 
+  // Alokasi pembayaran per item (R3)
+  const itemIds = items.map((i) => i.id);
+  const { data: allocs } = itemIds.length
+    ? await supabase
+        .from("payment_allocations")
+        .select("sale_item_id, amount")
+        .in("sale_item_id", itemIds)
+    : { data: [] as { sale_item_id: string; amount: number }[] };
+
+  const paidByItem = new Map<string, number>();
+  for (const a of allocs ?? []) {
+    paidByItem.set(
+      a.sale_item_id,
+      (paidByItem.get(a.sale_item_id) ?? 0) + Number(a.amount),
+    );
+  }
+  const payableItems: PayableItem[] = items.map((it) => {
+    const paid = paidByItem.get(it.id) ?? 0;
+    return {
+      id: it.id,
+      description: it.description,
+      lineTotal: Number(it.line_total),
+      paid,
+      outstanding: Math.max(0, Number(it.line_total) - paid),
+    };
+  });
+
   const remaining = Number(s.total) - Number(s.paid_total);
-  const shareUrl = `${await getBaseUrl()}/share/penjualan/${s.share_token}`;
+  const base = await getBaseUrl();
+  const shareUrl = `${base}/share/penjualan/${s.share_token}`;
+  const imageUrl = `${base}/share/penjualan/${s.share_token}/image`;
+  const caption = `Nota Penjualan ${s.number} — ${formatRupiah(s.total)}`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -73,6 +103,8 @@ export default async function SaleDetailPage({
           editHref={`/penjualan/${s.id}/edit`}
           shareUrl={shareUrl}
           strukHref={`/penjualan/${s.id}/struk`}
+          imageUrl={imageUrl}
+          caption={caption}
         />
       </div>
 
@@ -106,16 +138,35 @@ export default async function SaleDetailPage({
                 <CardTitle>Catat Pembayaran</CardTitle>
               </CardHeader>
               <CardContent>
-                <PaymentForm
-                  action={addSalePaymentAction}
-                  docId={s.id}
-                  docField="sale_id"
+                <SalePaymentForm
+                  saleId={s.id}
                   accounts={(accounts ?? []) as BankAccount[]}
+                  items={payableItems}
                   remaining={remaining}
                 />
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Status Bayar per Item</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {payableItems.map((i) => (
+                <div key={i.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="min-w-0 flex-1 truncate">{i.description}</span>
+                  {i.outstanding <= 0 ? (
+                    <Badge tone="success">Lunas</Badge>
+                  ) : i.paid > 0 ? (
+                    <Badge tone="warning">Sisa {formatRupiah(i.outstanding)}</Badge>
+                  ) : (
+                    <Badge tone="danger">Belum</Badge>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
           {payRows && payRows.length > 0 && (
             <Card>

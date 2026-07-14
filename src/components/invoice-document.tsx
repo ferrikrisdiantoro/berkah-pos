@@ -55,7 +55,7 @@ export function InvoiceDocument({
             <img
               src={b.logo_url}
               alt="Logo"
-              className="h-16 w-16 rounded-lg object-contain"
+              className="h-28 w-28 rounded-lg object-contain"
             />
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-lg font-bold text-white">

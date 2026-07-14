@@ -8,11 +8,13 @@ import type { ContactType } from "@/lib/types";
 function parseContact(formData: FormData) {
   return {
     type: (String(formData.get("type") ?? "supplier") as ContactType),
+    category: String(formData.get("category") ?? "").trim() || null,
     name: String(formData.get("name") ?? "").trim(),
     city: String(formData.get("city") ?? "").trim() || null,
     phone: String(formData.get("phone") ?? "").trim() || null,
     email: String(formData.get("email") ?? "").trim() || null,
     address: String(formData.get("address") ?? "").trim() || null,
+    notes: String(formData.get("notes") ?? "").trim() || null,
   };
 }
 

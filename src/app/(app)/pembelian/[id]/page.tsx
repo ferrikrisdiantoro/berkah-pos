@@ -61,7 +61,10 @@ export default async function PurchaseDetailPage({
   });
 
   const remaining = Number(p.total) - Number(p.paid_total);
-  const shareUrl = `${await getBaseUrl()}/share/pembelian/${p.share_token}`;
+  const base = await getBaseUrl();
+  const shareUrl = `${base}/share/pembelian/${p.share_token}`;
+  const imageUrl = `${base}/share/pembelian/${p.share_token}/image`;
+  const caption = `Nota Pembelian ${p.number} — ${formatRupiah(p.total)}`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -76,6 +79,8 @@ export default async function PurchaseDetailPage({
           editHref={`/pembelian/${p.id}/edit`}
           shareUrl={shareUrl}
           strukHref={`/pembelian/${p.id}/struk`}
+          imageUrl={imageUrl}
+          caption={caption}
         />
       </div>
 

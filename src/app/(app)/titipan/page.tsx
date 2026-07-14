@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
-import { DeleteButton } from "@/components/delete-button";
-import { deleteConsignmentAction } from "@/lib/actions/consignments";
 import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
-import type { Consignment, Contact } from "@/lib/types";
+import type { Consignment } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -74,11 +72,11 @@ export default async function TitipanPage() {
                     )}
                   </TD>
                   <TD className="text-right">
-                    <DeleteButton
-                      action={deleteConsignmentAction}
-                      id={c.id}
-                      confirmText={`Hapus titipan "${c.product_name}"?`}
-                    />
+                    <Link href={`/titipan/${c.id}`}>
+                      <Button variant="ghost" size="icon" aria-label="Edit">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Link>
                   </TD>
                 </TR>
               ))}

@@ -52,13 +52,24 @@ export interface Product {
 export interface Contact {
   id: string;
   type: ContactType;
+  category: string | null; // nelayan | petani | pemilik_barang | supplier | pelanggan | lainnya
   name: string;
   city: string | null;
   phone: string | null;
   email: string | null;
   address: string | null;
+  notes: string | null;
   is_active: boolean;
 }
+
+export const CONTACT_CATEGORIES: { value: string; label: string }[] = [
+  { value: "nelayan", label: "Nelayan" },
+  { value: "petani", label: "Petani / Tambak" },
+  { value: "pemilik_barang", label: "Pemilik Barang (Titipan)" },
+  { value: "supplier", label: "Supplier / Pemasok" },
+  { value: "pelanggan", label: "Pelanggan" },
+  { value: "lainnya", label: "Lainnya" },
+];
 
 export interface DocItem {
   id: string;

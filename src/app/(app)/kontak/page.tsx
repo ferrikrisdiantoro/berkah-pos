@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
-import type { Contact } from "@/lib/types";
+import { CONTACT_CATEGORIES, type Contact } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -40,22 +40,34 @@ export default async function KontakPage() {
           <Table>
             <THead>
               <TR>
-                <TH>Nama</TH>
+                <TH>Nama / Kategori</TH>
                 <TH>Tipe</TH>
                 <TH>Kota</TH>
                 <TH>Telepon</TH>
+                <TH>Catatan</TH>
                 <TH className="text-right">Aksi</TH>
               </TR>
             </THead>
             <TBody>
               {contacts.map((c) => (
                 <TR key={c.id}>
-                  <TD className="font-medium">{c.name}</TD>
+                  <TD>
+                    <div className="font-medium">{c.name}</div>
+                    {c.category && (
+                      <div className="text-xs text-muted-foreground">
+                        {CONTACT_CATEGORIES.find((x) => x.value === c.category)?.label ??
+                          c.category}
+                      </div>
+                    )}
+                  </TD>
                   <TD>
                     <Badge tone="muted">{TYPE_LABEL[c.type]}</Badge>
                   </TD>
                   <TD>{c.city ?? "—"}</TD>
                   <TD>{c.phone ?? "—"}</TD>
+                  <TD className="max-w-[16rem] truncate text-sm text-muted-foreground">
+                    {c.notes ?? "—"}
+                  </TD>
                   <TD className="text-right">
                     <Link href={`/kontak/${c.id}`}>
                       <Button variant="ghost" size="icon" aria-label="Edit">

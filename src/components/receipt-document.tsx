@@ -29,7 +29,7 @@ export function ReceiptDocument({
       <div className="text-center">
         {b.logo_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={b.logo_url} alt="Logo" className="mx-auto mb-1 h-12 w-12 object-contain" />
+          <img src={b.logo_url} alt="Logo" className="mx-auto mb-1 h-24 w-24 object-contain" />
         )}
         <div className="text-[13px] font-bold leading-tight">{b.name ?? "WL Pemburu Bandeng"}</div>
         {b.address && <div className="text-[9px] leading-tight">{b.address}</div>}
