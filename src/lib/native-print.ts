@@ -74,6 +74,60 @@ export function isNativeApp(): boolean {
   return !!cap?.isNativePlatform?.();
 }
 
+interface SharePlugin {
+  share: (opts: { text?: string; url?: string; files?: string[]; title?: string }) => Promise<unknown>;
+}
+interface FilesystemPlugin {
+  writeFile: (opts: { path: string; data: string; directory: string }) => Promise<{ uri: string }>;
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => resolve(String(r.result).split(",")[1] ?? "");
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Bagikan GAMBAR struk (file) ke WhatsApp dsb. lewat plugin native Capacitor.
+ * Dipakai saat app dijalankan sebagai APK (WebView tak dukung Web Share file).
+ */
+export async function shareImageNative(
+  imageUrl: string,
+  text: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const cap = (window as unknown as {
+    Capacitor?: { Plugins?: Record<string, unknown> };
+  }).Capacitor;
+  const Share = cap?.Plugins?.["Share"] as SharePlugin | undefined;
+  const Filesystem = cap?.Plugins?.["Filesystem"] as FilesystemPlugin | undefined;
+
+  if (!Share) return { ok: false, error: "Plugin share belum aktif di aplikasi." };
+
+  try {
+    let fileUri: string | undefined;
+    if (Filesystem) {
+      const res = await fetch(imageUrl);
+      if (!res.ok) throw new Error("gagal ambil gambar");
+      const base64 = await blobToBase64(await res.blob());
+      const name = `nota-${text.replace(/[^\w-]/g, "").slice(0, 20) || "struk"}.png`;
+      const written = await Filesystem.writeFile({ path: name, data: base64, directory: "CACHE" });
+      fileUri = written.uri;
+    }
+
+    if (fileUri) {
+      await Share.share({ text, files: [fileUri], url: fileUri });
+    } else {
+      await Share.share({ text });
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Gagal membagikan." };
+  }
+}
+
 interface BluetoothPrinterPlugin {
   getPaired: () => Promise<{ devices: { name?: string; address: string }[] }>;
   printText: (opts: { address: string; text: string }) => Promise<unknown>;

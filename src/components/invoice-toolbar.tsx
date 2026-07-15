@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Printer, Share2, Pencil, Check, ReceiptText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { isNativeApp, shareImageNative } from "@/lib/native-print";
 
 export function InvoiceToolbar({
   editHref,
@@ -35,27 +36,32 @@ export function InvoiceToolbar({
   /** Bagikan gambar struk + link (WhatsApp dsb). Fallback: salin link. */
   async function share() {
     setBusy(true);
+    const text = `${caption}\n${shareUrl}`;
     try {
-      const text = `${caption}\n${shareUrl}`;
-      const res = await fetch(imageUrl);
-      if (!res.ok) throw new Error("gagal ambil gambar");
-      const blob = await res.blob();
-      const file = new File([blob], "nota.png", { type: "image/png" });
+      // 1) Di aplikasi (APK): pakai plugin native -> kirim FILE gambar beneran.
+      if (isNativeApp()) {
+        const res = await shareImageNative(imageUrl, text);
+        if (res.ok) return;
+        // kalau gagal, lanjut ke fallback web di bawah.
+      }
 
+      // 2) Di browser HP yang mendukung Web Share Level 2 (kirim file).
       const nav = navigator as Navigator & {
         canShare?: (data?: ShareData) => boolean;
         share?: (data: ShareData) => Promise<void>;
       };
-
+      const blob = await (await fetch(imageUrl)).blob();
+      const file = new File([blob], "nota.png", { type: "image/png" });
       if (nav.share && nav.canShare?.({ files: [file] })) {
         await nav.share({ files: [file], text });
         return;
       }
-      // Perangkat tak mendukung kirim file -> bagikan teks + link saja.
       if (nav.share) {
         await nav.share({ text });
         return;
       }
+
+      // 3) Terakhir: salin link.
       await copyLink();
       toast.info("Tautan disalin (perangkat ini tak mendukung kirim gambar).");
     } catch {
