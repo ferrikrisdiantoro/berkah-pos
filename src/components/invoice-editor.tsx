@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -115,6 +116,8 @@ export function InvoiceEditor({
       return;
     }
     const c = consignments?.find((x) => x.id === id);
+    // Harga titip sering dikosongkan (belum tahu harga) -> JANGAN isi 0,
+    // biarkan kosong supaya admin wajib mengetik harga jual.
     update(key, {
       consignment_id: id,
       product_id: null,
@@ -139,6 +142,15 @@ export function InvoiceEditor({
       }));
     if (!contactId) return setError(`Pilih ${contactLabel.toLowerCase()}.`);
     if (items.length === 0) return setError("Tambahkan minimal satu item.");
+
+    // Cegah nota bertotal 0 karena harga belum diisi (kasus barang titipan
+    // yang harga titipnya dikosongkan).
+    const noPrice = items.filter((i) => !i.unit_price || i.unit_price <= 0);
+    if (noPrice.length > 0) {
+      return setError(
+        `Harga belum diisi untuk: ${noPrice.map((i) => i.description).join(", ")}. Isi harga dulu.`,
+      );
+    }
 
     const fd = new FormData();
     if (initial) fd.set("id", initial.id);
@@ -249,15 +261,11 @@ export function InvoiceEditor({
                       />
                     </td>
                     <td className="px-2 py-2">
-                      <Input
-                        className="h-9 w-32 text-right"
-                        type="number"
-                        step="any"
-                        min="0"
+                      <MoneyInput
+                        className="h-9 w-32"
                         value={r.unit_price}
-                        onChange={(e) =>
-                          update(r.key, { unit_price: Number(e.target.value) })
-                        }
+                        onValueChange={(v) => update(r.key, { unit_price: v })}
+                        placeholder="Harga"
                       />
                     </td>
                     <td className="px-2 py-2">

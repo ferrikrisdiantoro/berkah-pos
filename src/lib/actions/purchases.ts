@@ -49,6 +49,10 @@ export async function savePurchaseAction(formData: FormData) {
 
   if (items.length === 0) return { error: "Tambahkan minimal satu item." };
   if (!contactId) return { error: "Pilih supplier." };
+  // Cegah nota bertotal 0 (harga belum diisi).
+  if (items.some((i) => !i.unit_price || i.unit_price <= 0)) {
+    return { error: "Ada item yang harganya belum diisi. Isi harga beli dulu." };
+  }
 
   const {
     data: { user },

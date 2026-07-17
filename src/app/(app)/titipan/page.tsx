@@ -37,6 +37,17 @@ export default async function TitipanPage() {
         </Link>
       </PageHeader>
 
+      {rows.some((c) => Number(c.commission_value) <= 0) && (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm">
+          <b className="text-amber-700">⚠️ Ada titipan dengan komisi 0%</b>
+          <p className="mt-1 text-amber-900">
+            Titipan bertanda <b>Komisi 0</b> di bawah membuat toko <b>tidak dapat komisi</b> —
+            seluruh hasil penjualan jadi hak pemilik. Klik ikon pensil untuk mengisi komisinya
+            (mis. 5%).
+          </p>
+        </div>
+      )}
+
       <Card>
         {rows.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">Belum ada barang titipan.</p>
@@ -63,7 +74,13 @@ export default async function TitipanPage() {
                   <TD className="text-right">
                     {formatNumber(c.qty_remaining)} / {formatNumber(c.qty_in)} {c.unit ?? ""}
                   </TD>
-                  <TD className="text-right">{komisiLabel(c)}</TD>
+                  <TD className="text-right">
+                    {Number(c.commission_value) <= 0 ? (
+                      <Badge tone="warning">Komisi 0</Badge>
+                    ) : (
+                      komisiLabel(c)
+                    )}
+                  </TD>
                   <TD>
                     {c.status === "open" ? (
                       <Badge tone="success">Aktif</Badge>

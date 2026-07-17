@@ -73,7 +73,15 @@ export function InvoiceDocument({
           </div>
         </div>
         <div className="text-right">
-          <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+          <span
+            className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+              doc.status === "paid"
+                ? "bg-green-100 text-green-700"
+                : doc.status === "partial"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700"
+            }`}
+          >
             {STATUS_LABEL[doc.status as DocStatus]}
           </span>
           <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900">

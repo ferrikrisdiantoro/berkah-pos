@@ -9,8 +9,10 @@ export async function addCashEntryAction(formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   const direction = String(formData.get("direction") ?? "in") === "out" ? "out" : "in";
   const category = String(formData.get("category") ?? "").trim() || "Lain-lain";
+  // Halaman asal (Buku Kas atau Pengeluaran)
+  const back = String(formData.get("redirect_to") ?? "") || "/kas";
   if (!amount || amount <= 0) {
-    redirect("/kas?toast=" + encodeURIComponent("Nominal tidak valid") + "&toastType=error");
+    redirect(back + "?toast=" + encodeURIComponent("Nominal tidak valid") + "&toastType=error");
   }
 
   const {
@@ -28,7 +30,8 @@ export async function addCashEntryAction(formData: FormData) {
   });
 
   revalidatePath("/kas");
-  redirect("/kas?toast=" + encodeURIComponent("Catatan kas tersimpan"));
+  revalidatePath("/pengeluaran");
+  redirect(back + "?toast=" + encodeURIComponent("Catatan tersimpan"));
 }
 
 // Hanya entri manual yang boleh dihapus (entri otomatis ikut transaksinya).
@@ -40,4 +43,5 @@ export async function deleteCashEntryAction(formData: FormData) {
     .eq("id", String(formData.get("id") ?? ""))
     .eq("ref_type", "manual");
   revalidatePath("/kas");
+  revalidatePath("/pengeluaran");
 }

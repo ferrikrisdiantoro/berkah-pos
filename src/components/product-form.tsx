@@ -4,6 +4,7 @@ import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { saveProductAction } from "@/lib/actions/products";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { Product, Unit } from "@/lib/types";
@@ -55,25 +56,11 @@ export function ProductForm({
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="buy_price">Harga Beli</Label>
-        <Input
-          id="buy_price"
-          name="buy_price"
-          type="number"
-          min="0"
-          step="any"
-          defaultValue={product?.buy_price ?? 0}
-        />
+        <MoneyInput id="buy_price" name="buy_price" defaultValue={product?.buy_price ?? 0} />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="sell_price">Harga Jual</Label>
-        <Input
-          id="sell_price"
-          name="sell_price"
-          type="number"
-          min="0"
-          step="any"
-          defaultValue={product?.sell_price ?? 0}
-        />
+        <MoneyInput id="sell_price" name="sell_price" defaultValue={product?.sell_price ?? 0} />
       </div>
       <div className="flex items-center gap-2 sm:col-span-2">
         <input

@@ -88,6 +88,13 @@ export function ReceiptDocument({
         </div>
         <Row label="Bayar" value={formatRupiah(bayar)} />
         <Row label="Sisa" value={formatRupiah(sisa)} />
+        <div className="mt-1 text-center text-[13px] font-bold">
+          {doc.status === "paid"
+            ? "*** LUNAS ***"
+            : doc.status === "partial"
+              ? "*** BAYAR SEBAGIAN (DP) ***"
+              : "*** BELUM LUNAS ***"}
+        </div>
       </div>
 
       <div className="my-1 border-t border-dashed border-black" />
