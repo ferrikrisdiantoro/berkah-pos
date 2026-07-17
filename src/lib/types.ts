@@ -12,6 +12,11 @@ export interface BusinessSettings {
   email: string | null;
   logo_url: string | null;
   footer_note: string | null;
+  /** Nomor rekening / info pembayaran — tampil di atas "--- NAMA USAHA ---" */
+  bank_info: string | null;
+  receipt_title_sale: string | null;
+  receipt_title_purchase: string | null;
+  signature_note: string | null;
 }
 
 export interface BankAccount {

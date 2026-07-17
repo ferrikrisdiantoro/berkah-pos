@@ -28,6 +28,52 @@
   --radius: 0.6rem;
 }
 
+/* Tema GELAP */
+[data-theme="dark"] {
+  --background: #0b1220;
+  --foreground: #e2e8f0;
+  --card: #131c2e;
+  --card-foreground: #e2e8f0;
+  --muted: #1b2740;
+  --muted-foreground: #94a3b8;
+  --border: #24314d;
+  --input: #24314d;
+  --ring: #3b82f6;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #1b2740;
+  --secondary-foreground: #e2e8f0;
+  --destructive: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --sidebar: #070c17;
+  --sidebar-foreground: #94a3b8;
+  --sidebar-active: #18233a;
+}
+
+/* Tema BIRU */
+[data-theme="blue"] {
+  --background: #eef4ff;
+  --foreground: #0c1a36;
+  --card: #ffffff;
+  --card-foreground: #0c1a36;
+  --muted: #dce8ff;
+  --muted-foreground: #4b6087;
+  --border: #c3d6f8;
+  --input: #c3d6f8;
+  --ring: #1d4ed8;
+  --primary: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --secondary: #dce8ff;
+  --secondary-foreground: #0c1a36;
+  --destructive: #dc2626;
+  --success: #0f8a4d;
+  --warning: #b45309;
+  --sidebar: #0c2c6b;
+  --sidebar-foreground: #b9cdf3;
+  --sidebar-active: #14418f;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

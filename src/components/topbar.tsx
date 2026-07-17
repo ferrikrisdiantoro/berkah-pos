@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react";
 import { signOutAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/mobile-nav";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ROLE_LABEL, type Role } from "@/lib/auth";
 
 export function Topbar({ email, role }: { email: string; role: Role }) {
@@ -12,6 +13,7 @@ export function Topbar({ email, role }: { email: string; role: Role }) {
         <span className="text-sm font-semibold md:hidden">Berkah POS</span>
       </div>
       <div className="flex min-w-0 items-center gap-3">
+        <ThemeSwitcher />
         <div className="min-w-0 text-right leading-tight">
           <div className="truncate text-sm font-medium">{email}</div>
           <div className="text-xs">

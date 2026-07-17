@@ -85,7 +85,8 @@ export function InvoiceDocument({
             {STATUS_LABEL[doc.status as DocStatus]}
           </span>
           <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
-            {TITLE[docType]}
+            {(docType === "sale" ? b.receipt_title_sale : b.receipt_title_purchase) ??
+              TITLE[docType]}
           </h1>
           <div className="text-sm text-slate-500">{doc.number}</div>
         </div>
@@ -184,16 +185,18 @@ export function InvoiceDocument({
         </div>
       </div>
 
-      {/* Footer */}
-      {(doc.notes || b.footer_note) && (
-        <div className="mt-8 border-t border-slate-200 pt-4 text-sm text-slate-500">
-          {doc.notes && <p className="italic">{doc.notes}</p>}
-          {b.footer_note && <p className="mt-1">{b.footer_note}</p>}
-          <p className="mt-3 font-semibold text-slate-700">
-            ----- {b.name ?? "WL Pemburu Bandeng"} -----
-          </p>
-        </div>
-      )}
+      {/* Footer — semua teks diatur di Pengaturan */}
+      <div className="mt-8 border-t border-slate-200 pt-4 text-sm text-slate-500">
+        {doc.notes && <p className="italic">{doc.notes}</p>}
+        {b.footer_note && <p className="mt-1">{b.footer_note}</p>}
+        {b.bank_info && (
+          <p className="mt-2 whitespace-pre-line font-medium text-slate-700">{b.bank_info}</p>
+        )}
+        <p className="mt-3 font-semibold text-slate-700">
+          ----- {b.name ?? "WL Pemburu Bandeng"} -----
+        </p>
+        {b.signature_note && <p className="mt-1">{b.signature_note}</p>}
+      </div>
     </div>
   );
 }

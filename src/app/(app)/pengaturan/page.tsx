@@ -69,8 +69,56 @@ export default async function PengaturanPage() {
                 id="footer_note"
                 name="footer_note"
                 defaultValue={b.footer_note ?? ""}
+                placeholder="Terimakasih atas kepercayaan Anda."
               />
             </div>
+
+            <div className="sm:col-span-2 mt-2 border-t border-border pt-4">
+              <p className="text-sm font-semibold">Teks pada Nota</p>
+              <p className="text-xs text-muted-foreground">
+                Semua teks di bawah ini muncul di nota &amp; struk — bebas diubah.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <Label htmlFor="bank_info">Nomor Rekening / Info Pembayaran</Label>
+              <Textarea
+                id="bank_info"
+                name="bank_info"
+                defaultValue={b.bank_info ?? ""}
+                placeholder="mis. BRI 1234-5678-9012 a.n. Hamdan"
+              />
+              <p className="text-xs text-muted-foreground">
+                Tampil di nota &amp; struk, tepat di atas “--- {b.name ?? "NAMA USAHA"} ---”.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="receipt_title_sale">Judul Nota Penjualan</Label>
+              <Input
+                id="receipt_title_sale"
+                name="receipt_title_sale"
+                defaultValue={b.receipt_title_sale ?? "NOTA PENJUALAN"}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="receipt_title_purchase">Judul Nota Pembelian</Label>
+              <Input
+                id="receipt_title_purchase"
+                name="receipt_title_purchase"
+                defaultValue={b.receipt_title_purchase ?? "NOTA PEMBELIAN"}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <Label htmlFor="signature_note">Teks Penutup / Tanda Tangan</Label>
+              <Input
+                id="signature_note"
+                name="signature_note"
+                defaultValue={b.signature_note ?? ""}
+                placeholder="mis. Hormat kami, Pemburu Bandeng"
+              />
+            </div>
+
             <div className="sm:col-span-2">
               <Button type="submit">Simpan</Button>
             </div>

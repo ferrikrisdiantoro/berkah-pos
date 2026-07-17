@@ -40,7 +40,10 @@ export function ReceiptDocument({
 
       <div className="text-[10px] leading-snug">
         <div className="flex justify-between">
-          <span>{TITLE[docType]}</span>
+          <span>
+            {(docType === "sale" ? b.receipt_title_sale : b.receipt_title_purchase) ??
+              TITLE[docType]}
+          </span>
           <span>{STATUS_LABEL[doc.status as DocStatus]}</span>
         </div>
         <div className="flex justify-between">
@@ -101,7 +104,11 @@ export function ReceiptDocument({
 
       <div className="text-center text-[9px] leading-tight">
         {b.footer_note && <div>{b.footer_note}</div>}
+        {b.bank_info && (
+          <div className="mt-1 whitespace-pre-line font-semibold">{b.bank_info}</div>
+        )}
         <div className="mt-1">--- {b.name ?? "WL Pemburu Bandeng"} ---</div>
+        {b.signature_note && <div className="mt-0.5">{b.signature_note}</div>}
       </div>
     </div>
   );

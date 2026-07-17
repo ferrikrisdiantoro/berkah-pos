@@ -17,6 +17,13 @@ export async function updateBusinessAction(formData: FormData): Promise<void> {
       phone: String(formData.get("phone") ?? "").trim() || null,
       email: String(formData.get("email") ?? "").trim() || null,
       footer_note: String(formData.get("footer_note") ?? "").trim() || null,
+      // Teks nota yang bisa diatur sendiri (#6)
+      bank_info: String(formData.get("bank_info") ?? "").trim() || null,
+      receipt_title_sale:
+        String(formData.get("receipt_title_sale") ?? "").trim() || "NOTA PENJUALAN",
+      receipt_title_purchase:
+        String(formData.get("receipt_title_purchase") ?? "").trim() || "NOTA PEMBELIAN",
+      signature_note: String(formData.get("signature_note") ?? "").trim() || null,
     })
     .eq("id", 1);
 

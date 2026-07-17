@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
 import { SwRegister } from "@/components/sw-register";
+import { themeInitScript } from "@/components/theme-switcher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +33,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id" className={`${geistSans.variable} h-full`} suppressHydrationWarning>
+      <head>
+        {/* Pasang tema sebelum render agar tidak berkedip */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full" suppressHydrationWarning>
         {children}
         <SwRegister />

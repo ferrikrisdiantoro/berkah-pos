@@ -38,7 +38,7 @@ export function MobileNav({ role }: { role: Role }) {
             className="absolute inset-0 bg-black/50"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-sidebar-foreground shadow-xl">
+          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground shadow-xl">
             <div className="flex h-16 items-center justify-between px-4">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-0.5">

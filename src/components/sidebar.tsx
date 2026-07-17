@@ -14,7 +14,7 @@ export function Sidebar({ role }: { role: Role }) {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-sidebar-foreground md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex h-16 items-center gap-2.5 px-5">
         <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-0.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
