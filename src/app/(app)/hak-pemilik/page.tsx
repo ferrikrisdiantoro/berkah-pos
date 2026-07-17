@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { recordOwnerPaymentAction } from "@/lib/actions/owners";
 import { formatRupiah, todayISO } from "@/lib/utils";
@@ -88,13 +88,10 @@ export default async function HakPemilikPage() {
                     >
                       <input type="hidden" name="owner_id" value={o.id} />
                       <input type="hidden" name="date" value={todayISO()} />
-                      <Input
+                      <MoneyInput
                         name="amount"
-                        type="number"
-                        step="any"
-                        min="0"
                         defaultValue={Math.max(0, o.sisa)}
-                        className="h-9 w-36 text-right"
+                        className="h-9 w-36"
                       />
                       <Button type="submit" size="sm">
                         Bayar

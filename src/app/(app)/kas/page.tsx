@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { addCashEntryAction, deleteCashEntryAction } from "@/lib/actions/cash";
 import { formatRupiah, formatTanggal, todayISO } from "@/lib/utils";
@@ -70,7 +71,7 @@ export default async function KasPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="amount">Nominal</Label>
-              <Input id="amount" name="amount" type="number" step="any" min="0" required />
+              <MoneyInput id="amount" name="amount" required />
             </div>
             <div className="flex items-end">
               <Button type="submit" className="w-full">Simpan</Button>

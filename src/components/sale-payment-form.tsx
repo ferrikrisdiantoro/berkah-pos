@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { addSalePaymentAction } from "@/lib/actions/sales";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -105,14 +106,11 @@ export function SalePaymentForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="pay-amount">Nominal (bisa DP)</Label>
-          <Input
+          <MoneyInput
             id="pay-amount"
             name="amount"
-            type="number"
-            step="any"
-            min="0"
-            value={amount || ""}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            value={amount}
+            onValueChange={setAmount}
             required
           />
         </div>

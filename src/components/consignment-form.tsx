@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { saveConsignmentAction } from "@/lib/actions/consignments";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -116,13 +117,10 @@ export function ConsignmentForm({
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="base_price">Harga Titip / Acuan</Label>
-        <Input
+        <MoneyInput
           id="base_price"
           name="base_price"
-          type="number"
-          step="any"
-          min="0"
-          defaultValue={consignment?.base_price ? consignment.base_price : ""}
+          defaultValue={consignment?.base_price ?? 0}
           placeholder="Kosongkan jika belum tahu harga"
         />
         <p className="text-xs text-muted-foreground">

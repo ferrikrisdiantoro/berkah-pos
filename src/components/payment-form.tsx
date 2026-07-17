@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,10 @@ export function PaymentForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="pay-amount">Nominal</Label>
-          <Input
+          <MoneyInput
             id="pay-amount"
             name="amount"
-            type="number"
-            step="any"
-            min="0"
-            defaultValue={remaining > 0 ? remaining : ""}
+            defaultValue={remaining > 0 ? remaining : 0}
             required
           />
         </div>
