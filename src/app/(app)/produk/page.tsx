@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { SearchFilter } from "@/components/search-filter";
 import { formatRupiah, formatNumber } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -22,14 +23,34 @@ type Row = {
   unit: { name: string } | { name: string }[] | null;
 };
 
-export default async function ProdukPage() {
+export default async function ProdukPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; f?: string }>;
+}) {
+  const { q, f } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase
+
+  let query = supabase
     .from("products")
     .select("id, name, code, buy_price, sell_price, stock, min_stock, track_stock, unit:units(name)")
-    .eq("is_active", true)
-    .order("name");
-  const products = (data ?? []) as Row[];
+    .eq("is_active", true);
+  if (q) query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`);
+
+  const { data } = await query.order("name");
+  let products = (data ?? []) as Row[];
+
+  // Filter stok
+  if (f === "habis") products = products.filter((p) => p.track_stock && Number(p.stock) <= 0);
+  else if (f === "menipis")
+    products = products.filter(
+      (p) =>
+        p.track_stock &&
+        Number(p.stock) > 0 &&
+        Number(p.min_stock) > 0 &&
+        Number(p.stock) <= Number(p.min_stock),
+    );
+  else if (f === "ada") products = products.filter((p) => Number(p.stock) > 0);
 
   const unitName = (u: Row["unit"]) =>
     Array.isArray(u) ? u[0]?.name : u?.name;
@@ -44,10 +65,20 @@ export default async function ProdukPage() {
         </Link>
       </PageHeader>
 
+      <SearchFilter
+        placeholder="Cari produk (nama / kode)…"
+        filterLabel="Semua stok"
+        filters={[
+          { value: "ada", label: "Stok ada" },
+          { value: "menipis", label: "Stok menipis" },
+          { value: "habis", label: "Stok habis" },
+        ]}
+      />
+
       <Card>
         {products.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            Belum ada produk.
+            Tidak ada produk yang cocok.
           </p>
         ) : (
           <Table>

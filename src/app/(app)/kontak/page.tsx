@@ -6,19 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { SearchFilter } from "@/components/search-filter";
 import { CONTACT_CATEGORIES, type Contact } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 const TYPE_LABEL = { supplier: "Supplier", customer: "Pelanggan", both: "Supplier & Pelanggan" };
 
-export default async function KontakPage() {
+export default async function KontakPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; f?: string }>;
+}) {
+  const { q, f } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("contacts")
-    .select("*")
-    .eq("is_active", true)
-    .order("name");
+
+  let query = supabase.from("contacts").select("*").eq("is_active", true);
+  if (q) query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%,city.ilike.%${q}%`);
+  if (f) query = query.eq("category", f);
+
+  const { data } = await query.order("name");
   const contacts = (data ?? []) as Contact[];
 
   return (
@@ -31,10 +38,16 @@ export default async function KontakPage() {
         </Link>
       </PageHeader>
 
+      <SearchFilter
+        placeholder="Cari kontak (nama / telepon / kota)…"
+        filterLabel="Semua kategori"
+        filters={CONTACT_CATEGORIES}
+      />
+
       <Card>
         {contacts.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            Belum ada kontak.
+            Tidak ada kontak yang cocok.
           </p>
         ) : (
           <Table>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { SearchFilter } from "@/components/search-filter";
 import { formatRupiah, formatTanggal } from "@/lib/utils";
 import { STATUS_LABEL, STATUS_TONE, type DocStatus } from "@/lib/types";
 
@@ -21,15 +22,33 @@ type Row = {
   contact: { name: string } | { name: string }[] | null;
 };
 
-export default async function PembelianPage() {
+export default async function PembelianPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; f?: string }>;
+}) {
+  const { q, f } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase
+
+  let query = supabase
     .from("purchases")
-    .select("id, number, date, total, paid_total, status, contact:contacts(name)")
-    .order("created_at", { ascending: false });
-  const rows = (data ?? []) as Row[];
+    .select("id, number, date, total, paid_total, status, contact:contacts(name)");
+  if (f) query = query.eq("status", f);
+
+  const { data } = await query.order("created_at", { ascending: false });
+  let rows = (data ?? []) as Row[];
 
   const nameOf = (c: Row["contact"]) => (Array.isArray(c) ? c[0]?.name : c?.name);
+
+  // Cari berdasar nomor nota atau nama supplier.
+  if (q) {
+    const s = q.toLowerCase();
+    rows = rows.filter(
+      (r) =>
+        r.number.toLowerCase().includes(s) ||
+        (nameOf(r.contact) ?? "").toLowerCase().includes(s),
+    );
+  }
 
   return (
     <div>
@@ -41,10 +60,20 @@ export default async function PembelianPage() {
         </Link>
       </PageHeader>
 
+      <SearchFilter
+        placeholder="Cari nota / nama supplier…"
+        filterLabel="Semua status"
+        filters={[
+          { value: "paid", label: "Lunas" },
+          { value: "partial", label: "Bayar sebagian (DP)" },
+          { value: "unpaid", label: "Belum bayar" },
+        ]}
+      />
+
       <Card>
         {rows.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            Belum ada nota pembelian.
+            Tidak ada nota yang cocok.
           </p>
         ) : (
           <Table>

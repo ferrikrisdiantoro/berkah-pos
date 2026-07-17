@@ -3,6 +3,10 @@ import { ShoppingCart, Receipt, Package, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DashboardProductSearch,
+  type DashProduct,
+} from "@/components/dashboard-product-search";
 import { formatRupiah, formatTanggal } from "@/lib/utils";
 import { STATUS_LABEL, STATUS_TONE, type DocStatus } from "@/lib/types";
 
@@ -14,7 +18,10 @@ export default async function DashboardPage() {
   const [purchasesRes, salesRes, productsRes, recentRes] = await Promise.all([
     supabase.from("purchases").select("total, paid_total, status"),
     supabase.from("sales").select("total, paid_total, status"),
-    supabase.from("products").select("id, stock, min_stock, track_stock, is_active"),
+    supabase
+      .from("products")
+      .select("id, name, stock, min_stock, track_stock, is_active, sell_price, unit:units(name)")
+      .order("name"),
     supabase
       .from("purchases")
       .select("id, number, date, total, status, contact:contacts(name)")
@@ -80,6 +87,22 @@ export default async function DashboardPage() {
 
   const recent = recentRes.data ?? [];
 
+  // Data untuk pencarian produk cepat (#2)
+  const searchProducts: DashProduct[] = products
+    .filter((p) => p.is_active)
+    .map((p) => {
+      const u = (p as { unit?: { name?: string } | { name?: string }[] | null }).unit;
+      return {
+        id: p.id,
+        name: (p as { name: string }).name,
+        stock: Number(p.stock),
+        minStock: Number(p.min_stock),
+        trackStock: !!p.track_stock,
+        sellPrice: Number((p as { sell_price?: number }).sell_price ?? 0),
+        unit: (Array.isArray(u) ? u[0]?.name : u?.name) ?? "",
+      };
+    });
+
   return (
     <div className="flex flex-col gap-6">
       <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 p-6 text-white shadow-sm">
@@ -107,6 +130,8 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      <DashboardProductSearch products={searchProducts} />
 
       <Card>
         <CardContent className="pt-5">
