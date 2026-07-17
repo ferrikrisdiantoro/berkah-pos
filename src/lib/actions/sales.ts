@@ -56,6 +56,42 @@ export async function saveSaleAction(formData: FormData) {
     return { error: "Ada item yang harganya belum diisi. Isi harga jual dulu." };
   }
 
+  // Cegah menjual melebihi sisa barang titipan.
+  const conIds = [...new Set(items.map((i) => i.consignment_id).filter(Boolean))] as string[];
+  if (conIds.length > 0) {
+    const { data: cons } = await supabase
+      .from("consignments")
+      .select("id, product_name, qty_remaining")
+      .in("id", conIds);
+
+    // Saat edit, qty lama dikembalikan dulu -> tambahkan ke sisa yang tersedia.
+    const restore = new Map<string, number>();
+    if (id) {
+      const { data: oldItems } = await supabase
+        .from("sale_items")
+        .select("consignment_id, qty")
+        .eq("sale_id", id)
+        .not("consignment_id", "is", null);
+      for (const o of oldItems ?? []) {
+        restore.set(o.consignment_id!, (restore.get(o.consignment_id!) ?? 0) + Number(o.qty));
+      }
+    }
+    const want = new Map<string, number>();
+    for (const it of items) {
+      if (!it.consignment_id) continue;
+      want.set(it.consignment_id, (want.get(it.consignment_id) ?? 0) + it.qty);
+    }
+    for (const c of cons ?? []) {
+      const tersedia = Number(c.qty_remaining) + (restore.get(c.id) ?? 0);
+      const diminta = want.get(c.id) ?? 0;
+      if (diminta > tersedia) {
+        return {
+          error: `Sisa titipan "${c.product_name}" tidak cukup: tersedia ${tersedia}, diminta ${diminta}.`,
+        };
+      }
+    }
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -126,6 +162,19 @@ export async function addSalePaymentAction(formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   if (!saleId || !amount || amount <= 0) return { error: "Nominal tidak valid." };
 
+  // Jangan boleh bayar melebihi sisa tagihan (cegah salah ketik nol).
+  const { data: saleRow } = await supabase
+    .from("sales")
+    .select("total, paid_total")
+    .eq("id", saleId)
+    .single();
+  if (!saleRow) return { error: "Nota tidak ditemukan." };
+  const sisa = Number(saleRow.total) - Number(saleRow.paid_total);
+  if (sisa <= 0) return { error: "Nota ini sudah lunas." };
+  if (amount > sisa) {
+    return { error: `Nominal melebihi sisa tagihan (${Math.round(sisa).toLocaleString("id-ID")}).` };
+  }
+
   // Item yang dipilih untuk dibayar duluan (boleh kosong = pembayaran umum/DP).
   const itemIds = formData.getAll("item_ids").map(String).filter(Boolean);
 
@@ -151,8 +200,9 @@ export async function addSalePaymentAction(formData: FormData) {
 
   if (itemIds.length > 0) {
     // Sisa per item = line_total - yang sudah dialokasikan.
+    // WAJIB dibatasi ke nota ini — tanpa ini, item nota lain bisa ikut dialokasi.
     const [{ data: items }, { data: allocs }] = await Promise.all([
-      supabase.from("sale_items").select("id, line_total").in("id", itemIds),
+      supabase.from("sale_items").select("id, line_total").eq("sale_id", saleId).in("id", itemIds),
       supabase.from("payment_allocations").select("sale_item_id, amount").in("sale_item_id", itemIds),
     ]);
 
@@ -174,7 +224,14 @@ export async function addSalePaymentAction(formData: FormData) {
       rows.push({ payment_id: payment.id, sale_item_id: id, amount: alloc });
       left -= alloc;
     }
-    if (rows.length > 0) await supabase.from("payment_allocations").insert(rows);
+    if (rows.length > 0) {
+      const { error: allocErr } = await supabase.from("payment_allocations").insert(rows);
+      if (allocErr) {
+        // Jangan bilang "tersimpan" kalau alokasinya gagal — batalkan pembayarannya.
+        await supabase.from("payments").delete().eq("id", payment.id);
+        return { error: "Gagal mencatat alokasi pembayaran: " + allocErr.message };
+      }
+    }
   }
 
   revalidatePath(`/penjualan/${saleId}`);

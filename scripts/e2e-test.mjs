@@ -1,4 +1,6 @@
 // Uji end-to-end: menjalankan tiap fitur seperti yang dilakukan app (via REST +
+// CATATAN: JANGAN reset document_counters — nomor nota dipakai data asli;
+// meresetnya membuat nota berikutnya bentrok & gagal disimpan.
 // RPC Supabase) lalu render halaman asli lewat dev server. DB dikembalikan bersih.
 // SUPABASE_URL, ANON, EMAIL, PASSWORD, APP wajib di-set.
 const URL = process.env.SUPABASE_URL;
@@ -161,8 +163,6 @@ async function main() {
   await rest("DELETE", `/products?id=eq.${p2.id}`);
   await rest("DELETE", `/contacts?id=eq.${supplier.id}`);
   await rest("DELETE", `/contacts?id=eq.${cust.id}`);
-  await rest("PATCH", "/document_counters?doc_type=eq.purchase", { body: { next_no: 1 } });
-  await rest("PATCH", "/document_counters?doc_type=eq.sale", { body: { next_no: 1 } });
   const leftPur = await rest("GET", `/purchases?id=eq.${purchase.id}&select=id`);
   const leftProd = await rest("GET", `/products?id=eq.${p1.id}&select=id`);
   check("Cleanup: data uji terhapus & counter direset", leftPur.length === 0 && leftProd.length === 0);

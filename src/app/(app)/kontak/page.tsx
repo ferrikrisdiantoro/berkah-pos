@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { SearchFilter } from "@/components/search-filter";
+import { sanitizeSearch } from "@/lib/utils";
 import { CONTACT_CATEGORIES, type Contact } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,9 @@ export default async function KontakPage({
   const supabase = await createClient();
 
   let query = supabase.from("contacts").select("*").eq("is_active", true);
-  if (q) query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%,city.ilike.%${q}%`);
+  const term = sanitizeSearch(q);
+  if (term)
+    query = query.or(`name.ilike.%${term}%,phone.ilike.%${term}%,city.ilike.%${term}%`);
   if (f) query = query.eq("category", f);
 
   const { data } = await query.order("name");

@@ -106,8 +106,15 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
 
         {divider}
 
-        <div style={{ display: "flex", justifyContent: "center", width: "100%", fontSize: 13 }}>
-          {d.footer ?? `--- ${d.storeName} ---`}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          {d.footer && <div style={{ display: "flex", fontSize: 13 }}>{d.footer}</div>}
+          {d.bankInfo && (
+            <div style={{ display: "flex", fontSize: 13, fontWeight: 700, marginTop: 4, textAlign: "center" }}>
+              {d.bankInfo}
+            </div>
+          )}
+          <div style={{ display: "flex", fontSize: 13, marginTop: 4 }}>{`--- ${d.storeName} ---`}</div>
+          {d.signature && <div style={{ display: "flex", fontSize: 12, marginTop: 2 }}>{d.signature}</div>}
         </div>
       </div>
     ),

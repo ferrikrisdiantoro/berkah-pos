@@ -45,7 +45,11 @@ export default async function StrukPembelianPage({
     address: b.address,
     phone: b.phone,
     footer: b.footer_note,
-    title: "NOTA PEMBELIAN",
+    bankInfo: b.bank_info,
+    signature: b.signature_note,
+    statusLabel:
+      p.status === "paid" ? "*** LUNAS ***" : p.status === "partial" ? "*** DP ***" : "*** BELUM LUNAS ***",
+    title: b.receipt_title_purchase ?? "NOTA PEMBELIAN",
     number: p.number,
     dateLabel: formatTanggal(p.date),
     contactRole: "Supplier",

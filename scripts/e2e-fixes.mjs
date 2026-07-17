@@ -1,4 +1,6 @@
 // Verifikasi perbaikan: ledger stok (opening/adjustment), opname, edit persist,
+// CATATAN: JANGAN reset document_counters — nomor nota dipakai data asli;
+// meresetnya membuat nota berikutnya bentrok & gagal disimpan.
 // dan guard diskon (CHECK 0..100). Self-cleaning.
 const URL = process.env.SUPABASE_URL;
 const ANON = process.env.ANON;
@@ -97,7 +99,6 @@ async function main() {
   await rest("DELETE", `/purchases?id=eq.${pur.id}`);
   await rest("DELETE", `/products?id=eq.${prod.id}`);
   await rest("DELETE", `/contacts?id=eq.${sup.id}`);
-  await rest("PATCH", "/document_counters?doc_type=eq.purchase", { body: { next_no: 1 } });
   const left = await rest("GET", `/products?id=eq.${prod.id}&select=id`);
   check("Cleanup selesai", left.length === 0);
 }

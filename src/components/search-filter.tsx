@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 
 export interface FilterOption {
@@ -29,18 +29,22 @@ export function SearchFilter({
   const [q, setQ] = useState(params.get("q") ?? "");
   const f = params.get("f") ?? "";
 
-  // Cari otomatis setelah user berhenti mengetik (debounce).
+  // Simpan params terbaru di ref supaya timer debounce tidak memakai nilai basi
+  // (dulu: ketik lalu pilih filter <350ms -> filter ikut terhapus).
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
+
   useEffect(() => {
     const t = setTimeout(() => {
-      const sp = new URLSearchParams(params.toString());
+      const current = paramsRef.current;
+      const sp = new URLSearchParams(current.toString());
       if (q) sp.set("q", q);
       else sp.delete("q");
       const next = sp.toString();
-      if (next !== params.toString()) router.replace(`${pathname}?${next}`);
+      if (next !== current.toString()) router.replace(`${pathname}?${next}`);
     }, 350);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, [q, router, pathname]);
 
   function setFilter(value: string) {
     const sp = new URLSearchParams(params.toString());

@@ -6,6 +6,10 @@ export interface ReceiptData {
   address?: string | null;
   phone?: string | null;
   footer?: string | null;
+  /** Nomor rekening / info bayar dari Pengaturan (tampil di atas nama usaha). */
+  bankInfo?: string | null;
+  signature?: string | null;
+  statusLabel?: string | null;
   title: string;
   number: string;
   dateLabel: string;
@@ -61,9 +65,12 @@ export function buildReceiptText(d: ReceiptData): string {
   L.push(lr("TOTAL", d.total));
   L.push(lr("Bayar", d.bayar));
   L.push(lr("Sisa", d.sisa));
+  if (d.statusLabel) L.push(center(d.statusLabel));
   L.push(div);
   if (d.footer) L.push(center(d.footer));
+  if (d.bankInfo) L.push(wrap(d.bankInfo));
   L.push(center("--- " + d.storeName + " ---"));
+  if (d.signature) L.push(center(d.signature));
   L.push("\n\n\n");
   return L.join("\n");
 }

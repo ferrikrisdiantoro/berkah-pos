@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireMaster } from "@/lib/auth";
 
 const toastUrl = (msg: string) =>
   "/pengaturan?toast=" + encodeURIComponent(msg);
 
 export async function updateBusinessAction(formData: FormData): Promise<void> {
+  await requireMaster(); // halaman sudah dijaga, tapi action harus dijaga sendiri
   const supabase = await createClient();
   await supabase
     .from("business_settings")
@@ -32,6 +34,7 @@ export async function updateBusinessAction(formData: FormData): Promise<void> {
 }
 
 export async function addBankAccountAction(formData: FormData): Promise<void> {
+  await requireMaster();
   const supabase = await createClient();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
@@ -48,6 +51,7 @@ export async function addBankAccountAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteBankAccountAction(formData: FormData) {
+  await requireMaster();
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
   await supabase.from("bank_accounts").update({ is_active: false }).eq("id", id);

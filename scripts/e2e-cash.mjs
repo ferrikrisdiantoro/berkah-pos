@@ -1,4 +1,6 @@
 // Uji Modul B: buku kas auto-post dari pembayaran + owner payment + manual. Self-cleaning.
+// CATATAN: JANGAN reset document_counters — nomor nota dipakai data asli;
+// meresetnya membuat nota berikutnya bentrok & gagal disimpan.
 const URL = process.env.SUPABASE_URL, ANON = process.env.ANON;
 const EMAIL = process.env.EMAIL, PASSWORD = process.env.PASSWORD;
 const results = [];
@@ -62,8 +64,6 @@ async function main() {
   await rest("DELETE", `/sales?id=eq.${sale.id}`);
   await rest("DELETE", `/contacts?id=eq.${sup.id}`);
   await rest("DELETE", `/contacts?id=eq.${cust.id}`);
-  await rest("PATCH", "/document_counters?doc_type=eq.purchase", { body: { next_no: 1 } });
-  await rest("PATCH", "/document_counters?doc_type=eq.sale", { body: { next_no: 1 } });
   // pastikan entri auto milik pembelian sudah terhapus lewat cascade payment
   const leftover = await ledgerFor(ppay.id);
   check("Cleanup + entri auto ikut terhapus saat transaksi dihapus", leftover.length === 0);

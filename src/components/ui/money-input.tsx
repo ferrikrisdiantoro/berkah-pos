@@ -27,10 +27,18 @@ export function MoneyInput({
   required?: boolean;
   id?: string;
 }) {
+  // Format id-ID: titik = pemisah ribuan, koma = desimal.
   const format = (n: number | undefined) =>
     n === undefined || n === null || Number.isNaN(n) || n === 0
       ? ""
-      : new Intl.NumberFormat("id-ID").format(n);
+      : new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n);
+
+  /** "1.500,5" -> 1500.5 (JANGAN buang koma; itu desimal, bukan digit). */
+  const parse = (s: string): number => {
+    const cleaned = s.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  };
 
   const [text, setText] = React.useState<string>(format(value ?? defaultValue));
 
@@ -39,13 +47,19 @@ export function MoneyInput({
     if (value !== undefined) setText(format(value));
   }, [value]);
 
-  const num = Number(text.replace(/\./g, "").replace(/[^\d]/g, "")) || 0;
+  const num = parse(text);
 
   function handle(e: React.ChangeEvent<HTMLInputElement>) {
-    const digits = e.target.value.replace(/[^\d]/g, "");
-    const n = Number(digits) || 0;
-    setText(digits ? new Intl.NumberFormat("id-ID").format(n) : "");
-    onValueChange?.(n);
+    const raw = e.target.value;
+    // Izinkan angka + satu koma desimal.
+    const only = raw.replace(/[^\d,]/g, "");
+    const [intPart, ...rest] = only.split(",");
+    const dec = rest.length > 0 ? "," + rest.join("").slice(0, 2) : "";
+    const intNum = Number(intPart || "0");
+    const grouped = intPart ? new Intl.NumberFormat("id-ID").format(intNum) : "";
+    const next = grouped + dec;
+    setText(next);
+    onValueChange?.(parse(next));
   }
 
   return (

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { SearchFilter } from "@/components/search-filter";
-import { formatRupiah, formatNumber } from "@/lib/utils";
+import { formatRupiah, formatNumber, sanitizeSearch } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,8 @@ export default async function ProdukPage({
     .from("products")
     .select("id, name, code, buy_price, sell_price, stock, min_stock, track_stock, unit:units(name)")
     .eq("is_active", true);
-  if (q) query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`);
+  const term = sanitizeSearch(q);
+  if (term) query = query.or(`name.ilike.%${term}%,code.ilike.%${term}%`);
 
   const { data } = await query.order("name");
   let products = (data ?? []) as Row[];

@@ -35,14 +35,22 @@ export function SalePaymentForm({
     null,
   );
 
-  useEffect(() => {
-    if (state?.ok) toast.success("Pembayaran tersimpan");
-    else if (state?.error) toast.error(state.error);
-  }, [state]);
-
   const payable = items.filter((i) => i.outstanding > 0);
   const [selected, setSelected] = useState<string[]>([]);
   const [amount, setAmount] = useState<number>(remaining > 0 ? remaining : 0);
+
+  useEffect(() => {
+    if (state?.ok) {
+      toast.success("Pembayaran tersimpan");
+      // Reset supaya tidak terbawa nominal lama (cegah dobel bayar).
+      setSelected([]);
+    } else if (state?.error) toast.error(state.error);
+  }, [state]);
+
+  // Ikuti sisa tagihan terbaru setelah pembayaran tersimpan.
+  useEffect(() => {
+    setAmount(remaining > 0 ? remaining : 0);
+  }, [remaining]);
 
   function toggle(id: string) {
     const next = selected.includes(id)

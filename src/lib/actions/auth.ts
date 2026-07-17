@@ -24,7 +24,17 @@ export async function signInAction(
     return { error: "Email atau kata sandi salah." };
   }
 
-  redirect(next.startsWith("/") ? next : "/");
+  redirect(safeNext(next));
+}
+
+/**
+ * Hanya izinkan path internal. "//evil.com" & "/\evil.com" lolos dari
+ * startsWith("/") biasa dan bisa dipakai phishing -> tolak.
+ */
+function safeNext(next: string): string {
+  if (!next.startsWith("/")) return "/";
+  if (next.startsWith("//") || next.startsWith("/\\")) return "/";
+  return next;
 }
 
 export async function signOutAction() {

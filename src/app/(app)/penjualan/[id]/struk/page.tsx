@@ -45,7 +45,11 @@ export default async function StrukPenjualanPage({
     address: b.address,
     phone: b.phone,
     footer: b.footer_note,
-    title: "NOTA PENJUALAN",
+    bankInfo: b.bank_info,
+    signature: b.signature_note,
+    statusLabel:
+      s.status === "paid" ? "*** LUNAS ***" : s.status === "partial" ? "*** DP ***" : "*** BELUM LUNAS ***",
+    title: b.receipt_title_sale ?? "NOTA PENJUALAN",
     number: s.number,
     dateLabel: formatTanggal(s.date),
     contactRole: "Pelanggan",

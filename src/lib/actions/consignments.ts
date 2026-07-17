@@ -45,8 +45,15 @@ export async function saveConsignmentAction(formData: FormData) {
       .single();
     if (!cur) return { error: "Titipan tidak ditemukan." };
 
-    const delta = qtyIn - Number(cur.qty_in);
-    const newRemaining = Math.max(0, Number(cur.qty_remaining) + delta);
+    // Hitung dari yang SUDAH TERJUAL, jangan menggeser delta lalu di-clamp ke 0
+    // (dulu: qty_in 100 (60 terjual) diubah ke 10 -> sisa dipaksa 0, data rusak).
+    const sold = Number(cur.qty_in) - Number(cur.qty_remaining);
+    if (qtyIn < sold) {
+      return {
+        error: `Jumlah titip tidak boleh kurang dari yang sudah terjual (${sold}).`,
+      };
+    }
+    const newRemaining = qtyIn - sold;
 
     const { error } = await supabase
       .from("consignments")
@@ -74,6 +81,22 @@ export async function saveConsignmentAction(formData: FormData) {
 
 export async function deleteConsignmentAction(formData: FormData) {
   const supabase = await createClient();
-  await supabase.from("consignments").delete().eq("id", String(formData.get("id") ?? ""));
+  const { error } = await supabase
+    .from("consignments")
+    .delete()
+    .eq("id", String(formData.get("id") ?? ""));
+
+  if (error) {
+    // FK restrict: titipan yang barangnya sudah terjual tidak boleh dihapus,
+    // karena hak pemilik & riwayat penjualannya harus tetap utuh.
+    revalidatePath("/titipan");
+    redirect(
+      "/titipan?toast=" +
+        encodeURIComponent(
+          "Titipan ini sudah ada penjualannya, tidak bisa dihapus. Kosongkan sisanya atau biarkan sebagai riwayat.",
+        ) +
+        "&toastType=error",
+    );
+  }
   revalidatePath("/titipan");
 }

@@ -1,4 +1,6 @@
 // Uji Modul A: konsinyasi (titip jual) + komisi + hak pemilik. Self-cleaning.
+// CATATAN: JANGAN reset document_counters — nomor nota dipakai data asli;
+// meresetnya membuat nota berikutnya bentrok & gagal disimpan.
 const URL = process.env.SUPABASE_URL, ANON = process.env.ANON;
 const EMAIL = process.env.EMAIL, PASSWORD = process.env.PASSWORD;
 const results = [];
@@ -84,7 +86,6 @@ async function main() {
   await rest("DELETE", `/products?id=eq.${prod.id}`);
   await rest("DELETE", `/contacts?id=eq.${owner.id}`);
   await rest("DELETE", `/contacts?id=eq.${cust.id}`);
-  await rest("PATCH", "/document_counters?doc_type=eq.sale", { body: { next_no: 1 } });
   check("Cleanup selesai", true);
 }
 main().then(() => {

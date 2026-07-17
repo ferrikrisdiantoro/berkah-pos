@@ -31,6 +31,28 @@ async function adminFetch(path: string, init: RequestInit = {}) {
   return body;
 }
 
+/**
+ * Tulis ke tabel profiles memakai service role.
+ * profiles sengaja read-only bagi user login (cegah staf mengangkat diri jadi
+ * Master), jadi perubahan role/status harus lewat sini.
+ */
+async function profilesWrite(path: string, method: string, body: unknown) {
+  if (!SERVICE_KEY) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY belum di-set di server.");
+  }
+  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+    method,
+    headers: {
+      apikey: SERVICE_KEY,
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
 export interface StaffRow {
   id: string;
   email: string;
@@ -88,10 +110,16 @@ export async function createUserAction(formData: FormData) {
   }
 
   // Trigger membuat profile (role default 'staff'); set sesuai pilihan.
-  const supabase = await createClient();
-  await supabase
-    .from("profiles")
-    .upsert({ id: created.id, full_name: fullName || email, role, is_active: true });
+  try {
+    await profilesWrite("profiles", "POST", {
+      id: created.id,
+      full_name: fullName || email,
+      role,
+      is_active: true,
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Gagal menyimpan peran." };
+  }
 
   revalidatePath("/pengguna");
   redirect("/pengguna?toast=" + encodeURIComponent("Akun pengguna dibuat"));
@@ -110,16 +138,22 @@ export async function toggleUserActiveAction(formData: FormData) {
     );
   }
 
-  const supabase = await createClient();
-  await supabase.from("profiles").update({ is_active: activate }).eq("id", id);
-  // Blokir/izinkan login lewat ban di Auth.
+  // Ban di Auth = penjaga utama; is_active dipakai getCurrentUser sebagai lapis kedua.
   try {
+    await profilesWrite(`profiles?id=eq.${id}`, "PATCH", { is_active: activate });
     await adminFetch(`/admin/users/${id}`, {
       method: "PUT",
       body: JSON.stringify({ ban_duration: activate ? "none" : "876000h" }),
     });
-  } catch {
-    /* profiles.is_active tetap jadi acuan getCurrentUser */
+  } catch (e) {
+    // Jangan diam-diam gagal — kalau gagal, akun bisa jadi masih bisa dipakai.
+    redirect(
+      "/pengguna?toast=" +
+        encodeURIComponent(
+          "Gagal mengubah status: " + (e instanceof Error ? e.message : "tak diketahui"),
+        ) +
+        "&toastType=error",
+    );
   }
 
   revalidatePath("/pengguna");

@@ -5,6 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Bersihkan kata kunci pencarian sebelum dipakai di filter PostgREST `.or()`.
+ * Karakter , ( ) " \ merusak sintaks logic-tree (mis. cari "nila,udang" -> HTTP 400),
+ * sedangkan % dan _ adalah wildcard ilike yang bisa bikin hasil ngawur.
+ */
+export function sanitizeSearch(q: string | undefined | null): string {
+  if (!q) return "";
+  return q
+    .replace(/[,()"\\%_*]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
+}
+
 /** Format angka ke Rupiah, mis. 1365000 -> "Rp 1.365.000" */
 export function formatRupiah(value: number | string | null | undefined): string {
   const n = typeof value === "string" ? Number(value) : (value ?? 0);

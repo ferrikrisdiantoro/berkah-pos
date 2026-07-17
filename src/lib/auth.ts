@@ -8,6 +8,8 @@ export interface CurrentUser {
   email: string;
   role: Role;
   fullName: string | null;
+  /** false = akun dinonaktifkan Master; akses harus ditolak. */
+  isActive: boolean;
 }
 
 /** User + peran yang sedang login (null bila belum login). */
@@ -20,7 +22,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name")
+    .select("role, full_name, is_active")
     .eq("id", user.id)
     .single();
 
@@ -29,6 +31,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     email: user.email ?? "",
     role: (profile?.role as Role) ?? "staff",
     fullName: profile?.full_name ?? null,
+    isActive: profile?.is_active !== false,
   };
 }
 
