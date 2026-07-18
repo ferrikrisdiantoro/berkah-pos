@@ -12,6 +12,7 @@ import {
   Wallet,
   Scale,
   ReceiptText,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, master: false },
   { href: "/pembelian", label: "Pembelian", icon: ShoppingCart, master: false },
+  { href: "/rekap-pembelian", label: "Rekap Beli", icon: ClipboardList, master: false },
   { href: "/penjualan", label: "Penjualan", icon: Receipt, master: false },
   { href: "/produk", label: "Produk", icon: Package, master: false },
   { href: "/titipan", label: "Titipan", icon: PackageOpen, master: false },
