@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getPreviousDebts } from "@/lib/customer-debt";
 import { renderReceiptImage } from "@/lib/receipt-image";
 import { getBaseUrl } from "@/lib/base-url";
 import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
@@ -45,6 +47,19 @@ export async function GET(
     bayar: formatRupiah(s.paid_total),
     sisa: formatRupiah(Math.max(0, Number(s.total) - Number(s.paid_total))),
   };
+
+  const sisaNota = Math.max(0, Number(s.total) - Number(s.paid_total));
+  const { total: previousDebt } = await getPreviousDebts(
+    createAdminClient(),
+    "sales",
+    s.contact_id,
+    s.id,
+    s.date,
+  );
+  if (previousDebt > 0) {
+    receipt.previousDebt = formatRupiah(previousDebt);
+    receipt.totalDebt = formatRupiah(sisaNota + previousDebt);
+  }
 
   const logo = b.logo_url ? `${await getBaseUrl()}${b.logo_url}` : null;
   return renderReceiptImage(receipt, logo);

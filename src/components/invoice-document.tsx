@@ -31,6 +31,7 @@ export function InvoiceDocument({
   items,
   payments,
   docType,
+  previousDebt = 0,
 }: {
   business: Partial<BusinessSettings> | null;
   doc: Pick<
@@ -41,6 +42,8 @@ export function InvoiceDocument({
   items: DocItem[];
   payments: InvoicePayment[];
   docType: "purchase" | "sale";
+  /** Sisa tagihan pelanggan dari nota lain (untuk baris "Total Hutang"). */
+  previousDebt?: number;
 }) {
   const sisa = Math.max(0, Number(doc.total) - Number(doc.paid_total));
   const b = business ?? {};
@@ -200,6 +203,18 @@ export function InvoiceDocument({
             <span>Sisa Tagihan</span>
             <span>{formatRupiah(sisa)}</span>
           </div>
+          {previousDebt > 0 && (
+            <>
+              <div className="flex justify-between text-slate-500">
+                <span>Tunggakan Nota Lain</span>
+                <span className="text-slate-800">{formatRupiah(previousDebt)}</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-300 pt-2 text-base font-bold text-slate-900">
+                <span>Total Hutang</span>
+                <span>{formatRupiah(sisa + previousDebt)}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

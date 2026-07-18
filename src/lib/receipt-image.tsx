@@ -7,7 +7,11 @@ const W = 480;
 export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
   // Tinggi kanvas dibuat longgar agar bagian bawah (Sisa & footer) tidak terpotong.
   const height =
-    350 + d.items.length * 62 + (logoUrl ? 140 : 0) + (d.items.some((it) => it.pending) ? 30 : 0);
+    350 +
+    d.items.length * 62 +
+    (logoUrl ? 140 : 0) +
+    (d.items.some((it) => it.pending) ? 30 : 0) +
+    (d.previousDebt ? 48 : 0);
 
   const row = (left: string, right: string, bold = false) => (
     <div
@@ -106,6 +110,12 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
           {row("TOTAL", d.total, true)}
           {row("Bayar", d.bayar)}
           {row("Sisa", d.sisa)}
+          {d.previousDebt && d.totalDebt && (
+            <>
+              {row("Tunggakan lain", d.previousDebt)}
+              {row("TOTAL HUTANG", d.totalDebt, true)}
+            </>
+          )}
           {d.items.some((it) => it.pending) && (
             <div style={{ display: "flex", fontSize: 13, color: "#b45309", marginTop: 4 }}>
               *total belum final (ada harga menyusul)

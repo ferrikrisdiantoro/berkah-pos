@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getPreviousDebts } from "@/lib/customer-debt";
 import { ReceiptDocument } from "@/components/receipt-document";
 import { ReceiptActions } from "@/components/receipt-actions";
 import { NativePrintButton } from "@/components/native-print-button";
@@ -40,6 +41,15 @@ export default async function StrukPenjualanPage({
   const items = [...(s.items ?? [])].sort((a, b) => a.position - b.position);
   const b = (business ?? {}) as Partial<BusinessSettings>;
 
+  const sisaNota = Math.max(0, Number(s.total) - Number(s.paid_total));
+  const { total: previousDebt } = await getPreviousDebts(
+    supabase,
+    "sales",
+    s.contact_id,
+    s.id,
+    s.date,
+  );
+
   const receiptData: ReceiptData = {
     storeName: b.name ?? "WL Pemburu Bandeng",
     address: b.address,
@@ -65,7 +75,13 @@ export default async function StrukPenjualanPage({
     subtotal: formatRupiah(s.subtotal),
     total: formatRupiah(s.total),
     bayar: formatRupiah(s.paid_total),
-    sisa: formatRupiah(Math.max(0, Number(s.total) - Number(s.paid_total))),
+    sisa: formatRupiah(sisaNota),
+    ...(previousDebt > 0
+      ? {
+          previousDebt: formatRupiah(previousDebt),
+          totalDebt: formatRupiah(sisaNota + previousDebt),
+        }
+      : {}),
   };
 
   return (
@@ -81,6 +97,7 @@ export default async function StrukPenjualanPage({
           contact={s.contact}
           items={items}
           docType="sale"
+          previousDebt={previousDebt}
         />
       </div>
     </div>

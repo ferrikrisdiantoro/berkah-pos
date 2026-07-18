@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getPreviousDebts } from "@/lib/customer-debt";
 import { InvoiceDocument, type InvoicePayment } from "@/components/invoice-document";
 import { SharePrintButton } from "@/components/share-print-button";
 import type { BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
@@ -22,6 +24,15 @@ export default async function ShareSalePage({
     (a, b) => a.position - b.position,
   );
 
+  // Tunggakan pelanggan dari nota lain (butuh service role — anon terhalang RLS).
+  const { total: previousDebt } = await getPreviousDebts(
+    createAdminClient(),
+    "sales",
+    doc.contact_id,
+    doc.id,
+    doc.date,
+  );
+
   return (
     <main className="min-h-screen bg-background py-8">
       <div className="mx-auto max-w-3xl px-4">
@@ -36,6 +47,7 @@ export default async function ShareSalePage({
           items={items}
           payments={(data.payments ?? []) as InvoicePayment[]}
           docType="sale"
+          previousDebt={previousDebt}
         />
       </div>
     </main>

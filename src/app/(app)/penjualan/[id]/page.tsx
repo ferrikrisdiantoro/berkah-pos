@@ -15,6 +15,7 @@ import { DeleteButton } from "@/components/delete-button";
 import { deleteSalePaymentAction, deleteSaleAction } from "@/lib/actions/sales";
 import { formatRupiah, formatTanggal } from "@/lib/utils";
 import { getBaseUrl } from "@/lib/base-url";
+import { getPreviousDebts } from "@/lib/customer-debt";
 import type { BankAccount, BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,16 @@ export default async function SaleDetailPage({
   });
 
   const remaining = Number(s.total) - Number(s.paid_total);
+
+  // Tunggakan pelanggan yang sama dari nota lain (tanggal <= nota ini).
+  const { list: prevDebts, total: prevTotal } = await getPreviousDebts(
+    supabase,
+    "sales",
+    s.contact_id,
+    s.id,
+    s.date,
+  );
+
   const base = await getBaseUrl();
   const shareUrl = `${base}/share/penjualan/${s.share_token}`;
   const imageUrl = `${base}/share/penjualan/${s.share_token}/image`;
@@ -117,6 +128,7 @@ export default async function SaleDetailPage({
             items={items}
             payments={payments}
             docType="sale"
+            previousDebt={prevTotal}
           />
         </div>
 
@@ -131,6 +143,51 @@ export default async function SaleDetailPage({
               <Row label="Sisa Tagihan" value={formatRupiah(Math.max(0, remaining))} strong />
             </CardContent>
           </Card>
+
+          {prevDebts.length > 0 && (
+            <Card className="border-amber-300">
+              <CardHeader>
+                <CardTitle className="text-amber-700">
+                  Tunggakan Sebelumnya
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <p className="text-xs text-muted-foreground">
+                  {s.contact?.name ?? "Pelanggan ini"} masih punya sisa tagihan dari
+                  nota lain:
+                </p>
+                {prevDebts.map((d) => (
+                  <div key={d.id} className="flex items-center justify-between gap-2">
+                    <Link
+                      href={`/penjualan/${d.id}`}
+                      className="min-w-0 flex-1 truncate text-primary hover:underline"
+                    >
+                      {d.number}
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {formatTanggal(d.date)}
+                      </span>
+                    </Link>
+                    <span className="font-medium">{formatRupiah(d.sisa)}</span>
+                  </div>
+                ))}
+                <div className="mt-1 flex justify-between border-t border-border pt-2">
+                  <span className="font-semibold text-amber-700">Total Tunggakan</span>
+                  <span className="font-bold text-amber-700">
+                    {formatRupiah(prevTotal)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    Total utang termasuk nota ini
+                  </span>
+                  <span className="font-semibold">
+                    {formatRupiah(prevTotal + Math.max(0, remaining))}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {remaining > 0 && (
             <Card>

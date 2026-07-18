@@ -13,12 +13,14 @@ export function ReceiptDocument({
   contact,
   items,
   docType,
+  previousDebt = 0,
 }: {
   business: Partial<BusinessSettings> | null;
   doc: Pick<Purchase, "number" | "date" | "due_date" | "status" | "subtotal" | "discount_total" | "tax_total" | "total" | "paid_total" | "notes">;
   contact: Partial<Contact> | null;
   items: DocItem[];
   docType: "purchase" | "sale";
+  previousDebt?: number;
 }) {
   const b = business ?? {};
   const sisa = Math.max(0, Number(doc.total) - Number(doc.paid_total));
@@ -98,6 +100,15 @@ export function ReceiptDocument({
         </div>
         <Row label="Bayar" value={formatRupiah(bayar)} />
         <Row label="Sisa" value={formatRupiah(sisa)} />
+        {previousDebt > 0 && (
+          <>
+            <Row label="Tunggakan lain" value={formatRupiah(previousDebt)} />
+            <div className="flex justify-between text-[12px] font-bold">
+              <span>TOTAL HUTANG</span>
+              <span>{formatRupiah(sisa + previousDebt)}</span>
+            </div>
+          </>
+        )}
         <div className="mt-1 text-center text-[13px] font-bold">
           {doc.status === "paid"
             ? "*** LUNAS ***"

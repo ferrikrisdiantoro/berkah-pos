@@ -20,6 +20,10 @@ export interface ReceiptData {
   total: string;
   bayar: string;
   sisa: string;
+  /** Tunggakan nota lain (format Rupiah) — tampil jika ada. */
+  previousDebt?: string;
+  /** Total hutang = sisa nota ini + tunggakan lain (format Rupiah). */
+  totalDebt?: string;
 }
 
 const W = 32; // lebar kolom umum untuk kertas 58mm
@@ -65,6 +69,10 @@ export function buildReceiptText(d: ReceiptData): string {
   L.push(lr("TOTAL", d.total));
   L.push(lr("Bayar", d.bayar));
   L.push(lr("Sisa", d.sisa));
+  if (d.previousDebt && d.totalDebt) {
+    L.push(lr("Tunggakan lain", d.previousDebt));
+    L.push(lr("TOTAL HUTANG", d.totalDebt));
+  }
   if (d.items.some((it) => it.pending)) L.push(center("*total belum final (ada harga menyusul)"));
   if (d.statusLabel) L.push(center(d.statusLabel));
   L.push(div);
