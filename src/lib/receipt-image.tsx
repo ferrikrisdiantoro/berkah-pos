@@ -94,9 +94,8 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
         <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
           {d.items.map((it, i) => (
             <div key={i} style={{ display: "flex", flexDirection: "column", width: "100%", marginBottom: 6 }}>
-              <div style={{ fontSize: 17, fontWeight: 600 }}>
-                {it.description}
-                {it.pending ? " (harga menyusul)" : ""}
+              <div style={{ display: "flex", fontSize: 17, fontWeight: 600 }}>
+                {it.description + (it.pending ? " (harga menyusul)" : "")}
               </div>
               {row(it.qtyPrice, it.total)}
             </div>
