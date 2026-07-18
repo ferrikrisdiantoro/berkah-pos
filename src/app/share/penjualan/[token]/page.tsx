@@ -25,13 +25,19 @@ export default async function ShareSalePage({
   );
 
   // Tunggakan pelanggan dari nota lain (butuh service role — anon terhalang RLS).
-  const { total: previousDebt } = await getPreviousDebts(
-    createAdminClient(),
-    "sales",
-    doc.contact_id,
-    doc.id,
-    doc.date,
-  );
+  // Jangan sampai menggagalkan render nota bila service key tak tersedia.
+  let previousDebt = 0;
+  try {
+    ({ total: previousDebt } = await getPreviousDebts(
+      createAdminClient(),
+      "sales",
+      doc.contact_id,
+      doc.id,
+      doc.date,
+    ));
+  } catch {
+    previousDebt = 0;
+  }
 
   return (
     <main className="min-h-screen bg-background py-8">
