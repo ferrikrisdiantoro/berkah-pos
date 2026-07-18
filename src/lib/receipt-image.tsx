@@ -6,7 +6,8 @@ const W = 480;
 /** Render struk 58mm menjadi gambar PNG (untuk dibagikan ke WhatsApp). */
 export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
   // Tinggi kanvas dibuat longgar agar bagian bawah (Sisa & footer) tidak terpotong.
-  const height = 350 + d.items.length * 62 + (logoUrl ? 140 : 0);
+  const height =
+    350 + d.items.length * 62 + (logoUrl ? 140 : 0) + (d.items.some((it) => it.pending) ? 30 : 0);
 
   const row = (left: string, right: string, bold = false) => (
     <div
@@ -89,7 +90,10 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
         <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
           {d.items.map((it, i) => (
             <div key={i} style={{ display: "flex", flexDirection: "column", width: "100%", marginBottom: 6 }}>
-              <div style={{ fontSize: 17, fontWeight: 600 }}>{it.description}</div>
+              <div style={{ fontSize: 17, fontWeight: 600 }}>
+                {it.description}
+                {it.pending ? " (harga menyusul)" : ""}
+              </div>
               {row(it.qtyPrice, it.total)}
             </div>
           ))}
@@ -102,6 +106,11 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
           {row("TOTAL", d.total, true)}
           {row("Bayar", d.bayar)}
           {row("Sisa", d.sisa)}
+          {d.items.some((it) => it.pending) && (
+            <div style={{ display: "flex", fontSize: 13, color: "#b45309", marginTop: 4 }}>
+              *total belum final (ada harga menyusul)
+            </div>
+          )}
         </div>
 
         {divider}

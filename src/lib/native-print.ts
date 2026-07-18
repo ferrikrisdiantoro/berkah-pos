@@ -15,7 +15,7 @@ export interface ReceiptData {
   dateLabel: string;
   contactRole: string; // "Pelanggan" | "Supplier"
   contactName: string;
-  items: { description: string; qtyPrice: string; total: string }[];
+  items: { description: string; qtyPrice: string; total: string; pending?: boolean }[];
   subtotal: string;
   total: string;
   bayar: string;
@@ -57,7 +57,7 @@ export function buildReceiptText(d: ReceiptData): string {
   L.push(lr(d.contactRole, d.contactName));
   L.push(div);
   for (const it of d.items) {
-    L.push(it.description);
+    L.push(it.description + (it.pending ? " (harga menyusul)" : ""));
     L.push(lr(it.qtyPrice, it.total));
   }
   L.push(div);
@@ -65,6 +65,7 @@ export function buildReceiptText(d: ReceiptData): string {
   L.push(lr("TOTAL", d.total));
   L.push(lr("Bayar", d.bayar));
   L.push(lr("Sisa", d.sisa));
+  if (d.items.some((it) => it.pending)) L.push(center("*total belum final (ada harga menyusul)"));
   if (d.statusLabel) L.push(center(d.statusLabel));
   L.push(div);
   if (d.footer) L.push(center(d.footer));

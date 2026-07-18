@@ -106,10 +106,16 @@ export function InvoiceEditor({
 
   function pickProduct(key: string, productId: string) {
     const p = products.find((x) => x.id === productId);
+    const price = p ? Number(p[priceField]) : 0;
     update(key, {
       product_id: productId || null,
+      // Dropdown gabungan: pastikan pindah dari titipan ke produk tidak
+      // menyisakan consignment_id lama (baris tak boleh bawa dua ID).
+      consignment_id: null,
       description: p ? p.name : "",
-      unit_price: p ? Number(p[priceField]) : 0,
+      unit_price: price,
+      // Produk berharga -> batalkan "harga menyusul" supaya harga tak dibuang.
+      ...(price > 0 ? { price_pending: false } : {}),
     });
   }
 
@@ -126,6 +132,8 @@ export function InvoiceEditor({
       product_id: null,
       description: c ? c.desc : "",
       unit_price: c && c.base_price > 0 ? c.base_price : 0,
+      // Titipan berharga -> batalkan "harga menyusul" supaya harga tak dibuang.
+      ...(c && c.base_price > 0 ? { price_pending: false } : {}),
     });
   }
 

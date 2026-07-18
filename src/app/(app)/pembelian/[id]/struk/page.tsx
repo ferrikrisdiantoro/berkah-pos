@@ -56,8 +56,11 @@ export default async function StrukPembelianPage({
     contactName: p.contact?.name ?? "-",
     items: items.map((it) => ({
       description: it.description,
-      qtyPrice: `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
-      total: formatRupiah(it.line_total),
+      qtyPrice: it.price_pending
+        ? `${formatNumber(it.qty)} x —`
+        : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
+      total: it.price_pending ? "—" : formatRupiah(it.line_total),
+      pending: !!it.price_pending,
     })),
     subtotal: formatRupiah(p.subtotal),
     total: formatRupiah(p.total),
