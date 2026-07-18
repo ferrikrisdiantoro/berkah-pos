@@ -25,17 +25,21 @@ type Row = {
 export default async function PembelianPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; f?: string }>;
+  searchParams: Promise<{ q?: string; f?: string; from?: string; to?: string }>;
 }) {
-  const { q, f } = await searchParams;
+  const { q, f, from, to } = await searchParams;
   const supabase = await createClient();
 
   let query = supabase
     .from("purchases")
     .select("id, number, date, total, paid_total, status, contact:contacts(name)");
   if (f) query = query.eq("status", f);
+  if (from) query = query.gte("date", from);
+  if (to) query = query.lte("date", to);
 
-  const { data } = await query.order("created_at", { ascending: false });
+  const { data } = await query.order("date", { ascending: false }).order("created_at", {
+    ascending: false,
+  });
   let rows = (data ?? []) as Row[];
 
   const nameOf = (c: Row["contact"]) => (Array.isArray(c) ? c[0]?.name : c?.name);
@@ -62,6 +66,7 @@ export default async function PembelianPage({
 
       <SearchFilter
         placeholder="Cari nota / nama supplier…"
+        dateRange
         filterLabel="Semua status"
         filters={[
           { value: "paid", label: "Lunas" },

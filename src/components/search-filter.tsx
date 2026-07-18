@@ -9,16 +9,28 @@ export interface FilterOption {
   label: string;
 }
 
+export interface SelectFilter {
+  param: string; // nama parameter URL, mis. "f" atau "owner"
+  allLabel: string; // teks opsi "semua", mis. "Semua status"
+  options: FilterOption[];
+}
+
 /**
- * Kotak pencarian + filter untuk halaman daftar. Menulis ke URL (?q=&f=)
- * sehingga hasilnya di-filter di server.
+ * Bar pencarian + filter untuk halaman daftar. Semua ditulis ke URL sehingga
+ * hasilnya di-filter di server. Mendukung: kata kunci (debounce), rentang
+ * tanggal, dan beberapa dropdown sekaligus.
  */
 export function SearchFilter({
   placeholder = "Cari…",
+  dateRange = false,
+  selects = [],
+  // Kompatibilitas lama (satu filter):
   filters,
   filterLabel = "Semua",
 }: {
   placeholder?: string;
+  dateRange?: boolean;
+  selects?: SelectFilter[];
   filters?: FilterOption[];
   filterLabel?: string;
 }) {
@@ -26,14 +38,16 @@ export function SearchFilter({
   const pathname = usePathname();
   const params = useSearchParams();
 
-  const [q, setQ] = useState(params.get("q") ?? "");
-  const f = params.get("f") ?? "";
+  const allSelects: SelectFilter[] = filters
+    ? [{ param: "f", allLabel: filterLabel, options: filters }, ...selects]
+    : selects;
 
-  // Simpan params terbaru di ref supaya timer debounce tidak memakai nilai basi
-  // (dulu: ketik lalu pilih filter <350ms -> filter ikut terhapus).
+  const [q, setQ] = useState(params.get("q") ?? "");
+
   const paramsRef = useRef(params);
   paramsRef.current = params;
 
+  // Cari otomatis setelah berhenti mengetik (pakai params terbaru via ref).
   useEffect(() => {
     const t = setTimeout(() => {
       const current = paramsRef.current;
@@ -46,12 +60,17 @@ export function SearchFilter({
     return () => clearTimeout(t);
   }, [q, router, pathname]);
 
-  function setFilter(value: string) {
+  function setParam(key: string, value: string) {
     const sp = new URLSearchParams(params.toString());
-    if (value) sp.set("f", value);
-    else sp.delete("f");
+    if (value) sp.set(key, value);
+    else sp.delete(key);
     router.replace(`${pathname}?${sp.toString()}`);
   }
+
+  const hasActive =
+    q ||
+    (dateRange && (params.get("from") || params.get("to"))) ||
+    allSelects.some((s) => params.get(s.param));
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -75,19 +94,50 @@ export function SearchFilter({
         )}
       </div>
 
-      {filters && filters.length > 0 && (
+      {dateRange && (
+        <div className="flex items-center gap-1">
+          <input
+            type="date"
+            value={params.get("from") ?? ""}
+            onChange={(e) => setParam("from", e.target.value)}
+            aria-label="Dari tanggal"
+            className="h-10 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <span className="text-xs text-muted-foreground">s/d</span>
+          <input
+            type="date"
+            value={params.get("to") ?? ""}
+            onChange={(e) => setParam("to", e.target.value)}
+            aria-label="Sampai tanggal"
+            className="h-10 rounded-md border border-border bg-background px-2 text-sm"
+          />
+        </div>
+      )}
+
+      {allSelects.map((s) => (
         <select
-          value={f}
-          onChange={(e) => setFilter(e.target.value)}
+          key={s.param}
+          value={params.get(s.param) ?? ""}
+          onChange={(e) => setParam(s.param, e.target.value)}
           className="h-10 rounded-md border border-border bg-background px-3 text-sm"
         >
-          <option value="">{filterLabel}</option>
-          {filters.map((o) => (
+          <option value="">{s.allLabel}</option>
+          {s.options.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
             </option>
           ))}
         </select>
+      ))}
+
+      {hasActive && (
+        <button
+          type="button"
+          onClick={() => router.replace(pathname)}
+          className="h-10 rounded-md border border-border px-3 text-sm text-muted-foreground hover:bg-muted"
+        >
+          Reset
+        </button>
       )}
     </div>
   );

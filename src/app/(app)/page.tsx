@@ -7,6 +7,10 @@ import {
   DashboardProductSearch,
   type DashProduct,
 } from "@/components/dashboard-product-search";
+import {
+  DashboardOutstandingSearch,
+  type OutstandingParty,
+} from "@/components/dashboard-outstanding-search";
 import { formatRupiah, formatTanggal } from "@/lib/utils";
 import { STATUS_LABEL, STATUS_TONE, type DocStatus } from "@/lib/types";
 
@@ -16,8 +20,8 @@ export default async function DashboardPage() {
   const supabase = await createClient();
 
   const [purchasesRes, salesRes, productsRes, recentRes] = await Promise.all([
-    supabase.from("purchases").select("total, paid_total, status"),
-    supabase.from("sales").select("total, paid_total, status"),
+    supabase.from("purchases").select("total, paid_total, status, contact:contacts(name)"),
+    supabase.from("sales").select("total, paid_total, status, contact:contacts(name)"),
     supabase
       .from("products")
       .select("id, name, stock, min_stock, track_stock, is_active, sell_price, unit:units(name)")
@@ -45,6 +49,31 @@ export default async function DashboardPage() {
     const minStock = Number(p.min_stock);
     return stock <= 0 || (minStock > 0 && stock <= minStock);
   }).length;
+
+  // Daftar pihak yang masih nunggak (untuk pencarian di dashboard).
+  const nameOfC = (c: unknown) => {
+    const o = c as { name?: string } | { name?: string }[] | null;
+    return (Array.isArray(o) ? o[0]?.name : o?.name) ?? "—";
+  };
+  const outParties: OutstandingParty[] = [];
+  const piutangMap = new Map<string, number>();
+  for (const s of sales) {
+    if (s.status === "paid" || s.status === "draft") continue;
+    const sisa = Number(s.total) - Number(s.paid_total);
+    if (sisa <= 0) continue;
+    const n = nameOfC(s.contact);
+    piutangMap.set(n, (piutangMap.get(n) ?? 0) + sisa);
+  }
+  for (const [name, amount] of piutangMap) outParties.push({ name, kind: "piutang", amount });
+  const hutangMap = new Map<string, number>();
+  for (const p of purchases) {
+    if (p.status === "paid" || p.status === "draft") continue;
+    const sisa = Number(p.total) - Number(p.paid_total);
+    if (sisa <= 0) continue;
+    const n = nameOfC(p.contact);
+    hutangMap.set(n, (hutangMap.get(n) ?? 0) + sisa);
+  }
+  for (const [name, amount] of hutangMap) outParties.push({ name, kind: "hutang", amount });
 
   const stats = [
     {
@@ -131,7 +160,10 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <DashboardProductSearch products={searchProducts} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DashboardProductSearch products={searchProducts} />
+        <DashboardOutstandingSearch parties={outParties} />
+      </div>
 
       <Card>
         <CardContent className="pt-5">

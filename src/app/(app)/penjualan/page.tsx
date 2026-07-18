@@ -25,17 +25,30 @@ type Row = {
 export default async function PenjualanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; f?: string }>;
+  searchParams: Promise<{ q?: string; f?: string; from?: string; to?: string; owner?: string }>;
 }) {
-  const { q, f } = await searchParams;
+  const { q, f, from, to, owner } = await searchParams;
   const supabase = await createClient();
 
-  let query = supabase
-    .from("sales")
-    .select("id, number, date, total, paid_total, status, contact:contacts(name)");
-  if (f) query = query.eq("status", f);
+  // Jika difilter per pemilik barang titipan, pakai inner-join ke sale_items.
+  let query = owner
+    ? supabase
+        .from("sales")
+        .select(
+          "id, number, date, total, paid_total, status, contact:contacts(name), items:sale_items!inner(owner_id)",
+        )
+        .eq("items.owner_id", owner)
+    : supabase
+        .from("sales")
+        .select("id, number, date, total, paid_total, status, contact:contacts(name)");
 
-  const { data } = await query.order("created_at", { ascending: false });
+  if (f) query = query.eq("status", f);
+  if (from) query = query.gte("date", from);
+  if (to) query = query.lte("date", to);
+
+  const { data } = await query.order("date", { ascending: false }).order("created_at", {
+    ascending: false,
+  });
   let rows = (data ?? []) as Row[];
 
   const nameOf = (c: Row["contact"]) => (Array.isArray(c) ? c[0]?.name : c?.name);
@@ -50,6 +63,20 @@ export default async function PenjualanPage({
     );
   }
 
+  // Opsi pemilik barang (dari titipan yang ada).
+  const { data: cons } = await supabase
+    .from("consignments")
+    .select("owner:contacts(id, name)");
+  const ownerMap = new Map<string, string>();
+  for (const c of cons ?? []) {
+    const o = c.owner as { id?: string; name?: string } | { id?: string; name?: string }[] | null;
+    const oo = Array.isArray(o) ? o[0] : o;
+    if (oo?.id) ownerMap.set(oo.id, oo.name ?? "—");
+  }
+  const ownerOptions = [...ownerMap.entries()]
+    .map(([value, label]) => ({ value, label }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
   return (
     <div>
       <PageHeader title="Penjualan" subtitle="Nota penjualan ke pelanggan.">
@@ -62,11 +89,20 @@ export default async function PenjualanPage({
 
       <SearchFilter
         placeholder="Cari nota / nama pelanggan…"
-        filterLabel="Semua status"
-        filters={[
-          { value: "paid", label: "Lunas" },
-          { value: "partial", label: "Bayar sebagian (DP)" },
-          { value: "unpaid", label: "Belum bayar" },
+        dateRange
+        selects={[
+          {
+            param: "f",
+            allLabel: "Semua status",
+            options: [
+              { value: "paid", label: "Lunas" },
+              { value: "partial", label: "Bayar sebagian (DP)" },
+              { value: "unpaid", label: "Belum bayar" },
+            ],
+          },
+          ...(ownerOptions.length > 0
+            ? [{ param: "owner", allLabel: "Semua pemilik barang", options: ownerOptions }]
+            : []),
         ]}
       />
 
