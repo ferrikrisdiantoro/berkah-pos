@@ -38,6 +38,7 @@ export type InvoiceInitial = {
   notes: string | null;
   status: string;
   items: DocItem[];
+  manual_previous_debt?: number | null;
 };
 
 let rowSeq = 0;
@@ -75,6 +76,10 @@ export function InvoiceEditor({
   const [date, setDate] = useState(initial?.date ?? todayISO());
   const [dueDate, setDueDate] = useState(initial?.due_date ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [manualOn, setManualOn] = useState(initial?.manual_previous_debt != null);
+  const [manualDebt, setManualDebt] = useState<number>(
+    initial?.manual_previous_debt != null ? Number(initial.manual_previous_debt) : 0,
+  );
   const [rows, setRows] = useState<Row[]>(
     initial && initial.items.length
       ? initial.items.map((it) => ({
@@ -184,6 +189,8 @@ export function InvoiceEditor({
     fd.set("notes", notes);
     fd.set("status", initial?.status ?? "unpaid");
     fd.set("items", JSON.stringify(items));
+    // Tunggakan manual: kosong = pakai hitungan otomatis.
+    fd.set("manual_previous_debt", manualOn ? String(manualDebt || 0) : "");
 
     setSaving(true);
     const res = await action(fd);
@@ -376,6 +383,38 @@ export function InvoiceEditor({
           />
         </CardContent>
       </Card>
+
+      {kind === "sale" && (
+        <Card>
+          <CardContent className="pt-5">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={manualOn}
+                onChange={(e) => setManualOn(e.target.checked)}
+              />
+              Isi tunggakan sebelumnya secara manual
+            </label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Untuk hutang lama yang belum tercatat di aplikasi. Jika dicentang,
+              angka ini yang dipakai di nota (menggantikan hitungan otomatis).
+              Kosongkan centang untuk pakai hitungan otomatis.
+            </p>
+            {manualOn && (
+              <div className="mt-3 max-w-xs">
+                <Label>Tunggakan Sebelumnya (Rp)</Label>
+                <MoneyInput
+                  className="mt-1.5 h-10"
+                  value={manualDebt}
+                  onValueChange={setManualDebt}
+                  placeholder="0"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

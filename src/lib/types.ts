@@ -135,6 +135,8 @@ export interface Purchase {
   notes: string | null;
   share_token: string;
   created_at: string;
+  /** Tunggakan manual (khusus penjualan). Null = pakai hitungan otomatis. */
+  manual_previous_debt?: number | null;
   contact?: Contact | null;
   items?: DocItem[];
 }

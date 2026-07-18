@@ -87,14 +87,18 @@ export default async function SaleDetailPage({
 
   const remaining = Number(s.total) - Number(s.paid_total);
 
-  // Tunggakan pelanggan yang sama dari nota lain (tanggal <= nota ini).
-  const { list: prevDebts, total: prevTotal } = await getPreviousDebts(
+  // Tunggakan: pakai input manual bila diisi, selain itu hitung otomatis dari
+  // nota lain pelanggan yang sama (tanggal <= nota ini).
+  const isManualDebt = s.manual_previous_debt != null;
+  const { list: autoDebts, total: autoTotal } = await getPreviousDebts(
     supabase,
     "sales",
     s.contact_id,
     s.id,
     s.date,
   );
+  const prevDebts = isManualDebt ? [] : autoDebts;
+  const prevTotal = isManualDebt ? Number(s.manual_previous_debt) : autoTotal;
 
   const base = await getBaseUrl();
   const shareUrl = `${base}/share/penjualan/${s.share_token}`;
@@ -144,17 +148,18 @@ export default async function SaleDetailPage({
             </CardContent>
           </Card>
 
-          {prevDebts.length > 0 && (
+          {prevTotal > 0 && (
             <Card className="border-amber-300">
               <CardHeader>
                 <CardTitle className="text-amber-700">
-                  Tunggakan Sebelumnya
+                  Tunggakan Sebelumnya{isManualDebt ? " (Manual)" : ""}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p className="text-xs text-muted-foreground">
-                  {s.contact?.name ?? "Pelanggan ini"} masih punya sisa tagihan dari
-                  nota lain:
+                  {isManualDebt
+                    ? "Tunggakan diinput manual pada nota ini."
+                    : `${s.contact?.name ?? "Pelanggan ini"} masih punya sisa tagihan dari nota lain:`}
                 </p>
                 {prevDebts.map((d) => (
                   <div key={d.id} className="flex items-center justify-between gap-2">

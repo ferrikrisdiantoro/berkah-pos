@@ -50,16 +50,20 @@ export async function GET(
 
   const sisaNota = Math.max(0, Number(s.total) - Number(s.paid_total));
   let previousDebt = 0;
-  try {
-    ({ total: previousDebt } = await getPreviousDebts(
-      createAdminClient(),
-      "sales",
-      s.contact_id,
-      s.id,
-      s.date,
-    ));
-  } catch {
-    previousDebt = 0;
+  if (s.manual_previous_debt != null) {
+    previousDebt = Number(s.manual_previous_debt);
+  } else {
+    try {
+      ({ total: previousDebt } = await getPreviousDebts(
+        createAdminClient(),
+        "sales",
+        s.contact_id,
+        s.id,
+        s.date,
+      ));
+    } catch {
+      previousDebt = 0;
+    }
   }
   if (previousDebt > 0) {
     receipt.previousDebt = formatRupiah(previousDebt);

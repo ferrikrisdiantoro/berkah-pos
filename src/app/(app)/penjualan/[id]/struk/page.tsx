@@ -42,13 +42,14 @@ export default async function StrukPenjualanPage({
   const b = (business ?? {}) as Partial<BusinessSettings>;
 
   const sisaNota = Math.max(0, Number(s.total) - Number(s.paid_total));
-  const { total: previousDebt } = await getPreviousDebts(
+  const { total: autoDebt } = await getPreviousDebts(
     supabase,
     "sales",
     s.contact_id,
     s.id,
     s.date,
   );
+  const previousDebt = s.manual_previous_debt != null ? Number(s.manual_previous_debt) : autoDebt;
 
   const receiptData: ReceiptData = {
     storeName: b.name ?? "WL Pemburu Bandeng",

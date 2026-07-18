@@ -24,19 +24,24 @@ export default async function ShareSalePage({
     (a, b) => a.position - b.position,
   );
 
-  // Tunggakan pelanggan dari nota lain (butuh service role — anon terhalang RLS).
-  // Jangan sampai menggagalkan render nota bila service key tak tersedia.
+  // Tunggakan: pakai input manual bila diisi. Selain itu hitung otomatis dari
+  // nota lain (butuh service role — anon terhalang RLS). Jangan menggagalkan
+  // render nota bila service key tak tersedia.
   let previousDebt = 0;
-  try {
-    ({ total: previousDebt } = await getPreviousDebts(
-      createAdminClient(),
-      "sales",
-      doc.contact_id,
-      doc.id,
-      doc.date,
-    ));
-  } catch {
-    previousDebt = 0;
+  if (doc.manual_previous_debt != null) {
+    previousDebt = Number(doc.manual_previous_debt);
+  } else {
+    try {
+      ({ total: previousDebt } = await getPreviousDebts(
+        createAdminClient(),
+        "sales",
+        doc.contact_id,
+        doc.id,
+        doc.date,
+      ));
+    } catch {
+      previousDebt = 0;
+    }
   }
 
   return (

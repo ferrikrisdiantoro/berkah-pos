@@ -51,6 +51,9 @@ export async function saveSaleAction(formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const status = String(formData.get("status") ?? "unpaid");
   const items = parseItems(String(formData.get("items") ?? "[]"));
+  // Tunggakan manual: kosong -> null (pakai hitungan otomatis).
+  const manualDebtRaw = String(formData.get("manual_previous_debt") ?? "").trim();
+  const manualPreviousDebt = manualDebtRaw === "" ? null : Math.max(0, Number(manualDebtRaw) || 0);
 
   if (items.length === 0) return { error: "Tambahkan minimal satu item." };
   if (!contactId) return { error: "Pilih pelanggan." };
@@ -104,7 +107,14 @@ export async function saveSaleAction(formData: FormData) {
   if (id) {
     const { error } = await supabase
       .from("sales")
-      .update({ contact_id: contactId, date, due_date: dueDate, notes, status })
+      .update({
+        contact_id: contactId,
+        date,
+        due_date: dueDate,
+        notes,
+        status,
+        manual_previous_debt: manualPreviousDebt,
+      })
       .eq("id", id);
     if (error) return { error: error.message };
     await supabase.from("sale_items").delete().eq("sale_id", id);
@@ -123,6 +133,7 @@ export async function saveSaleAction(formData: FormData) {
         due_date: dueDate,
         notes,
         status,
+        manual_previous_debt: manualPreviousDebt,
         created_by: user?.id ?? null,
       })
       .select("id")

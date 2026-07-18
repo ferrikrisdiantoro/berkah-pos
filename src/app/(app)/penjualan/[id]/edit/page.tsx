@@ -40,6 +40,7 @@ export default async function EditSalePage({
     notes: s.notes,
     status: s.status,
     items: [...(s.items ?? [])].sort((a, b) => a.position - b.position),
+    manual_previous_debt: s.manual_previous_debt ?? null,
   };
 
   return (
