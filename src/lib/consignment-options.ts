@@ -18,7 +18,7 @@ export async function getConsignmentOptions(): Promise<ConsignmentOption[]> {
     return {
       id: c.id,
       label: `${ownerName ?? "?"} · ${c.product_name} — sisa ${formatNumber(c.qty_remaining)} ${c.unit ?? ""}`,
-      desc: `${c.product_name} (Titipan)`,
+      desc: c.product_name,
       base_price: Number(c.base_price),
     };
   });

@@ -130,17 +130,35 @@ export function InvoiceDocument({
         <tbody>
           {items.map((it) => (
             <tr key={it.id} className="border-b border-slate-100">
-              <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
+              <td className="py-2.5 font-medium text-slate-800">
+                {it.description}
+                {it.price_pending && (
+                  <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                    menunggu harga
+                  </span>
+                )}
+              </td>
               <td className="py-2.5 text-right">{formatNumber(it.qty)}</td>
-              <td className="py-2.5 text-right">{formatRupiah(it.unit_price)}</td>
+              <td className="py-2.5 text-right">
+                {it.price_pending ? "—" : formatRupiah(it.unit_price)}
+              </td>
               <td className="py-2.5 text-right">
                 {Number(it.discount_pct) > 0 ? `${formatNumber(it.discount_pct)}%` : "0%"}
               </td>
-              <td className="py-2.5 text-right font-medium">{formatRupiah(it.line_total)}</td>
+              <td className="py-2.5 text-right font-medium">
+                {it.price_pending ? "—" : formatRupiah(it.line_total)}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {items.some((it) => it.price_pending) && (
+        <div className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          ⚠ Ada barang yang harganya <b>menyusul</b> — total di bawah <b>belum final</b>,
+          akan bertambah setelah harganya diisi.
+        </div>
+      )}
 
       {/* Totals */}
       <div className="mt-6 flex justify-end">

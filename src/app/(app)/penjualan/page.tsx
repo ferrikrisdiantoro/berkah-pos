@@ -25,10 +25,24 @@ type Row = {
 export default async function PenjualanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; f?: string; from?: string; to?: string; owner?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    f?: string;
+    from?: string;
+    to?: string;
+    owner?: string;
+    pend?: string;
+  }>;
 }) {
-  const { q, f, from, to, owner } = await searchParams;
+  const { q, f, from, to, owner, pend } = await searchParams;
   const supabase = await createClient();
+
+  // Nota yang punya item "harga menyusul".
+  const { data: pendRows } = await supabase
+    .from("sale_items")
+    .select("sale_id")
+    .eq("price_pending", true);
+  const pendingIds = new Set((pendRows ?? []).map((r) => r.sale_id));
 
   // Jika difilter per pemilik barang titipan, pakai inner-join ke sale_items.
   let query = owner
@@ -62,6 +76,9 @@ export default async function PenjualanPage({
         (nameOf(r.contact) ?? "").toLowerCase().includes(s),
     );
   }
+
+  // Hanya nota yang masih ada item "harga menyusul".
+  if (pend === "1") rows = rows.filter((r) => pendingIds.has(r.id));
 
   // Opsi pemilik barang (dari titipan yang ada).
   const { data: cons } = await supabase
@@ -103,6 +120,11 @@ export default async function PenjualanPage({
           ...(ownerOptions.length > 0
             ? [{ param: "owner", allLabel: "Semua pemilik barang", options: ownerOptions }]
             : []),
+          {
+            param: "pend",
+            allLabel: "Semua harga",
+            options: [{ value: "1", label: "Menunggu harga" }],
+          },
         ]}
       />
 
@@ -138,7 +160,10 @@ export default async function PenjualanPage({
                     {formatRupiah(Number(s.total) - Number(s.paid_total))}
                   </TD>
                   <TD>
-                    <Badge tone={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Badge tone={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge>
+                      {pendingIds.has(s.id) && <Badge tone="warning">Menunggu harga</Badge>}
+                    </div>
                   </TD>
                 </TR>
               ))}

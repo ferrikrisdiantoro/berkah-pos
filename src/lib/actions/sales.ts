@@ -12,6 +12,7 @@ type ItemInput = {
   unit_price: number;
   discount_pct: number;
   tax_pct: number;
+  price_pending: boolean;
 };
 
 function parseItems(raw: string): ItemInput[] {
@@ -25,14 +26,16 @@ function parseItems(raw: string): ItemInput[] {
   return arr
     .map((x) => {
       const o = x as Record<string, unknown>;
+      const pending = o.price_pending === true;
       return {
         product_id: (o.product_id as string) || null,
         consignment_id: (o.consignment_id as string) || null,
         description: String(o.description ?? "").trim(),
         qty: Number(o.qty) || 0,
-        unit_price: Number(o.unit_price) || 0,
-        discount_pct: Math.min(100, Math.max(0, Number(o.discount_pct) || 0)),
+        unit_price: pending ? 0 : Number(o.unit_price) || 0,
+        discount_pct: pending ? 0 : Math.min(100, Math.max(0, Number(o.discount_pct) || 0)),
         tax_pct: Math.min(100, Math.max(0, Number(o.tax_pct) || 0)),
+        price_pending: pending,
       };
     })
     .filter((i) => i.description && i.qty > 0);
@@ -51,9 +54,9 @@ export async function saveSaleAction(formData: FormData) {
 
   if (items.length === 0) return { error: "Tambahkan minimal satu item." };
   if (!contactId) return { error: "Pilih pelanggan." };
-  // Cegah nota bertotal 0 (harga belum diisi).
-  if (items.some((i) => !i.unit_price || i.unit_price <= 0)) {
-    return { error: "Ada item yang harganya belum diisi. Isi harga jual dulu." };
+  // Cegah nota harga 0 yang TIDAK ditandai "harga menyusul".
+  if (items.some((i) => !i.price_pending && (!i.unit_price || i.unit_price <= 0))) {
+    return { error: "Ada item yang harganya belum diisi. Isi harga jual atau tandai 'harga menyusul'." };
   }
 
   // Cegah menjual melebihi sisa barang titipan.
@@ -137,6 +140,7 @@ export async function saveSaleAction(formData: FormData) {
     unit_price: it.unit_price,
     discount_pct: it.discount_pct,
     tax_pct: it.tax_pct,
+    price_pending: it.price_pending,
     position: idx,
   }));
   const { error: itemsErr } = await supabase.from("sale_items").insert(rows);

@@ -65,13 +65,20 @@ export function ReceiptDocument({
       <div className="text-[10px] leading-snug">
         {items.map((it) => (
           <div key={it.id} className="mb-1">
-            <div className="font-semibold">{it.description}</div>
+            <div className="font-semibold">
+              {it.description}
+              {it.price_pending ? " (harga menyusul)" : ""}
+            </div>
             <div className="flex justify-between">
               <span>
-                {formatNumber(it.qty)} x {formatRupiah(it.unit_price)}
-                {Number(it.discount_pct) > 0 ? ` -${formatNumber(it.discount_pct)}%` : ""}
+                {it.price_pending
+                  ? `${formatNumber(it.qty)} x —`
+                  : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`}
+                {!it.price_pending && Number(it.discount_pct) > 0
+                  ? ` -${formatNumber(it.discount_pct)}%`
+                  : ""}
               </span>
-              <span>{formatRupiah(it.line_total)}</span>
+              <span>{it.price_pending ? "—" : formatRupiah(it.line_total)}</span>
             </div>
           </div>
         ))}

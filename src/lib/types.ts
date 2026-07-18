@@ -90,6 +90,7 @@ export interface DocItem {
   owner_id?: string | null;
   commission_amount?: number;
   owner_amount?: number;
+  price_pending?: boolean;
 }
 
 export type CommissionType = "percent" | "fixed_per_unit";

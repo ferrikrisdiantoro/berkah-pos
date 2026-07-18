@@ -27,6 +27,7 @@ type Row = {
   qty: number;
   unit_price: number;
   discount_pct: number;
+  price_pending: boolean;
 };
 
 export type InvoiceInitial = {
@@ -48,6 +49,7 @@ const newRow = (): Row => ({
   qty: 1,
   unit_price: 0,
   discount_pct: 0,
+  price_pending: false,
 });
 
 function lineTotal(r: Row) {
@@ -83,6 +85,7 @@ export function InvoiceEditor({
           qty: Number(it.qty),
           unit_price: Number(it.unit_price),
           discount_pct: Number(it.discount_pct),
+          price_pending: !!it.price_pending,
         }))
       : [newRow()],
   );
@@ -126,6 +129,18 @@ export function InvoiceEditor({
     });
   }
 
+  // Satu dropdown gabungan: produk biasa + barang titipan.
+  // Nilai di-encode "p:<id>" (produk) atau "c:<id>" (titipan).
+  function pickItem(key: string, val: string) {
+    if (!val) {
+      update(key, { product_id: null, consignment_id: null });
+      return;
+    }
+    const id = val.slice(2);
+    if (val.startsWith("c:")) pickConsignment(key, id);
+    else pickProduct(key, id);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -136,19 +151,20 @@ export function InvoiceEditor({
         consignment_id: r.consignment_id,
         description: r.description.trim(),
         qty: r.qty,
-        unit_price: r.unit_price,
-        discount_pct: r.discount_pct,
+        // Item "harga menyusul" wajib 0 sampai harganya diisi.
+        unit_price: r.price_pending ? 0 : r.unit_price,
+        discount_pct: r.price_pending ? 0 : r.discount_pct,
         tax_pct: 0,
+        price_pending: r.price_pending,
       }));
     if (!contactId) return setError(`Pilih ${contactLabel.toLowerCase()}.`);
     if (items.length === 0) return setError("Tambahkan minimal satu item.");
 
-    // Cegah nota bertotal 0 karena harga belum diisi (kasus barang titipan
-    // yang harga titipnya dikosongkan).
-    const noPrice = items.filter((i) => !i.unit_price || i.unit_price <= 0);
+    // Harga wajib diisi KECUALI ditandai "harga menyusul".
+    const noPrice = items.filter((i) => !i.price_pending && (!i.unit_price || i.unit_price <= 0));
     if (noPrice.length > 0) {
       return setError(
-        `Harga belum diisi untuk: ${noPrice.map((i) => i.description).join(", ")}. Isi harga dulu.`,
+        `Harga belum diisi untuk: ${noPrice.map((i) => i.description).join(", ")}. Isi harga atau centang "harga menyusul".`,
       );
     }
 
@@ -216,32 +232,36 @@ export function InvoiceEditor({
                 {rows.map((r) => (
                   <tr key={r.key} className="border-b border-border/60 align-top">
                     <td className="py-2 pr-2">
-                      {consignments && consignments.length > 0 && (
-                        <Select
-                          className="mb-1 h-9 border-amber-300 bg-amber-50"
-                          value={r.consignment_id ?? ""}
-                          onChange={(e) => pickConsignment(r.key, e.target.value)}
-                        >
-                          <option value="">— Barang titipan? (opsional) —</option>
-                          {consignments.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.label}
-                            </option>
-                          ))}
-                        </Select>
-                      )}
                       <Select
                         className="mb-1 h-9"
-                        value={r.product_id ?? ""}
-                        onChange={(e) => pickProduct(r.key, e.target.value)}
-                        disabled={!!r.consignment_id}
+                        value={
+                          r.consignment_id
+                            ? `c:${r.consignment_id}`
+                            : r.product_id
+                              ? `p:${r.product_id}`
+                              : ""
+                        }
+                        onChange={(e) => pickItem(r.key, e.target.value)}
                       >
-                        <option value="">— Produk / manual —</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
+                        <option value="">— Pilih barang / ketik manual —</option>
+                        {products.length > 0 && (
+                          <optgroup label="Produk">
+                            {products.map((p) => (
+                              <option key={p.id} value={`p:${p.id}`}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {consignments && consignments.length > 0 && (
+                          <optgroup label="Barang Titipan">
+                            {consignments.map((c) => (
+                              <option key={c.id} value={`c:${c.id}`}>
+                                {c.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </Select>
                       <Input
                         className="h-9"
@@ -262,11 +282,25 @@ export function InvoiceEditor({
                     </td>
                     <td className="px-2 py-2">
                       <MoneyInput
-                        className="h-9 w-32"
-                        value={r.unit_price}
+                        className={`h-9 w-32 ${r.price_pending ? "opacity-40" : ""}`}
+                        value={r.price_pending ? 0 : r.unit_price}
                         onValueChange={(v) => update(r.key, { unit_price: v })}
-                        placeholder="Harga"
+                        placeholder={r.price_pending ? "menyusul" : "Harga"}
                       />
+                      <label className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5"
+                          checked={r.price_pending}
+                          onChange={(e) =>
+                            update(r.key, {
+                              price_pending: e.target.checked,
+                              unit_price: e.target.checked ? 0 : r.unit_price,
+                            })
+                          }
+                        />
+                        harga menyusul
+                      </label>
                     </td>
                     <td className="px-2 py-2">
                       <Input
