@@ -70,6 +70,8 @@ export default async function StrukPenjualanPage({
       qtyPrice: it.price_pending
         ? `${formatNumber(it.qty)} x —`
         : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
+      qty: formatNumber(it.qty),
+      price: it.price_pending ? "—" : formatNumber(it.unit_price),
       total: it.price_pending ? "—" : formatRupiah(it.line_total),
       pending: !!it.price_pending,
     })),

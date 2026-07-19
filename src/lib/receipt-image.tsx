@@ -7,11 +7,11 @@ const W = 480;
 export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
   // Tinggi kanvas dibuat longgar agar bagian bawah (Sisa & footer) tidak terpotong.
   const height =
-    380 +
-    d.items.length * 62 +
+    400 +
+    d.items.length * 44 +
     (logoUrl ? 140 : 0) +
-    (d.items.some((it) => it.pending) ? 30 : 0) +
-    (d.previousDebt ? 48 : 0);
+    (d.items.some((it) => it.pending) ? 34 : 0) +
+    (d.previousDebt && d.totalDebt ? 72 : 0);
 
   const row = (left: string, right: string, bold = false) => (
     <div
@@ -97,12 +97,41 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
         {divider}
 
         <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+          {/* Header kolom */}
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#555",
+              paddingBottom: 4,
+            }}
+          >
+            <span style={{ flex: 1 }}>Produk</span>
+            <span style={{ width: 48, textAlign: "right" }}>Qty</span>
+            <span style={{ width: 92, textAlign: "right" }}>Harga</span>
+            <span style={{ width: 104, textAlign: "right" }}>Jumlah</span>
+          </div>
           {d.items.map((it, i) => (
-            <div key={i} style={{ display: "flex", flexDirection: "column", width: "100%", marginBottom: 6 }}>
-              <div style={{ display: "flex", fontSize: 17, fontWeight: 600 }}>
-                {it.description + (it.pending ? " (harga menyusul)" : "")}
-              </div>
-              {row(it.qtyPrice, it.total)}
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                width: "100%",
+                fontSize: 15,
+                marginBottom: 4,
+                alignItems: "flex-start",
+              }}
+            >
+              <span style={{ flex: 1, fontWeight: 600, paddingRight: 4 }}>
+                {it.description + (it.pending ? " *" : "")}
+              </span>
+              <span style={{ width: 48, textAlign: "right" }}>{it.qty}</span>
+              <span style={{ width: 92, textAlign: "right" }}>{it.price}</span>
+              <span style={{ width: 104, textAlign: "right", fontWeight: 600 }}>
+                {it.total}
+              </span>
             </div>
           ))}
         </div>

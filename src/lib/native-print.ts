@@ -15,7 +15,15 @@ export interface ReceiptData {
   dateLabel: string;
   contactRole: string; // "Pelanggan" | "Supplier"
   contactName: string;
-  items: { description: string; qtyPrice: string; total: string; pending?: boolean }[];
+  items: {
+    description: string;
+    qtyPrice: string;
+    /** Kolom terpisah untuk tampilan tabel (gambar/struk). */
+    qty: string;
+    price: string;
+    total: string;
+    pending?: boolean;
+  }[];
   subtotal: string;
   total: string;
   bayar: string;

@@ -66,27 +66,36 @@ export function ReceiptDocument({
 
       <div className="my-1 border-t border-dashed border-black" />
 
-      <div className="text-[10px] leading-snug">
-        {items.map((it) => (
-          <div key={it.id} className="mb-1">
-            <div className="font-semibold">
-              {it.description}
-              {it.price_pending ? " (harga menyusul)" : ""}
-            </div>
-            <div className="flex justify-between">
-              <span>
-                {it.price_pending
-                  ? `${formatNumber(it.qty)} x —`
-                  : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`}
-                {!it.price_pending && Number(it.discount_pct) > 0
-                  ? ` -${formatNumber(it.discount_pct)}%`
-                  : ""}
-              </span>
-              <span>{it.price_pending ? "—" : formatRupiah(it.line_total)}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      <table className="w-full text-[10px] leading-snug">
+        <thead>
+          <tr className="text-left align-bottom">
+            <th className="font-semibold">Produk</th>
+            <th className="text-right font-semibold">Qty</th>
+            <th className="text-right font-semibold">Harga</th>
+            <th className="text-right font-semibold">Jumlah</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((it) => (
+            <tr key={it.id} className="align-top">
+              <td className="pr-1 font-semibold">
+                {it.description}
+                {it.price_pending ? " *" : ""}
+              </td>
+              <td className="text-right">{formatNumber(it.qty)}</td>
+              <td className="text-right">
+                {it.price_pending ? "—" : formatNumber(it.unit_price)}
+              </td>
+              <td className="text-right">
+                {it.price_pending ? "—" : formatNumber(it.line_total)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {items.some((it) => it.price_pending) && (
+        <div className="text-[9px] italic">* harga menyusul (total belum final)</div>
+      )}
 
       <div className="my-1 border-t border-dashed border-black" />
 
