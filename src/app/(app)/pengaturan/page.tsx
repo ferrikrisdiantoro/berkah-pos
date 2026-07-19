@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LogoUpload } from "@/components/logo-upload";
 import {
   updateBusinessAction,
   addBankAccountAction,
@@ -47,6 +48,7 @@ export default async function PengaturanPage() {
         </CardHeader>
         <CardContent>
           <form action={updateBusinessAction} className="grid gap-4 sm:grid-cols-2">
+            <LogoUpload initial={b.logo_url ?? null} />
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <Label htmlFor="name">Nama Usaha</Label>
               <Input id="name" name="name" defaultValue={b.name ?? ""} />

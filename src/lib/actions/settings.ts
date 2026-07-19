@@ -11,10 +11,13 @@ const toastUrl = (msg: string) =>
 export async function updateBusinessAction(formData: FormData): Promise<void> {
   await requireMaster(); // halaman sudah dijaga, tapi action harus dijaga sendiri
   const supabase = await createClient();
+  const logoUrl = String(formData.get("logo_url") ?? "").trim();
   await supabase
     .from("business_settings")
     .update({
       name: String(formData.get("name") ?? "").trim() || "WL Pemburu Bandeng",
+      // Gambar nota: data URI hasil upload, path statis, atau kosong (dihapus).
+      logo_url: logoUrl || null,
       address: String(formData.get("address") ?? "").trim() || null,
       phone: String(formData.get("phone") ?? "").trim() || null,
       email: String(formData.get("email") ?? "").trim() || null,

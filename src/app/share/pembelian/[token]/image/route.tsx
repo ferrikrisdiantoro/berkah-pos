@@ -48,6 +48,10 @@ export async function GET(
     sisa: formatNumber(Math.max(0, Number(p.total) - Number(p.paid_total))),
   };
 
-  const logo = b.logo_url ? `${await getBaseUrl()}${b.logo_url}` : null;
+  const logo = b.logo_url
+    ? b.logo_url.startsWith("http") || b.logo_url.startsWith("data:")
+      ? b.logo_url
+      : `${await getBaseUrl()}${b.logo_url}`
+    : null;
   return renderReceiptImage(receipt, logo);
 }
