@@ -101,7 +101,7 @@ export function InvoiceDocument({
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             {docType === "purchase" ? "Tagihan Kepada" : "Kepada"}
           </div>
-          <div className="mt-1 font-semibold text-slate-900">
+          <div className="mt-1 text-xl font-bold text-slate-900">
             {contact?.name ?? "—"}
           </div>
           {contact?.city && <div className="text-sm text-slate-500">{contact.city}</div>}

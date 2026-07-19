@@ -7,7 +7,7 @@ const W = 480;
 export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
   // Tinggi kanvas dibuat longgar agar bagian bawah (Sisa & footer) tidak terpotong.
   const height =
-    350 +
+    380 +
     d.items.length * 62 +
     (logoUrl ? 140 : 0) +
     (d.items.some((it) => it.pending) ? 30 : 0) +
@@ -86,7 +86,12 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
           {row(d.title, "")}
           {row("No", d.number)}
           {row("Tgl", d.dateLabel)}
-          {row(d.contactRole, d.contactName)}
+          <div style={{ display: "flex", fontSize: 12, color: "#555", marginTop: 4 }}>
+            {d.contactRole}
+          </div>
+          <div style={{ display: "flex", fontSize: 22, fontWeight: 700, lineHeight: 1.1 }}>
+            {d.contactName}
+          </div>
         </div>
 
         {divider}

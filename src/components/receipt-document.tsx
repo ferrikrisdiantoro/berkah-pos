@@ -56,9 +56,11 @@ export function ReceiptDocument({
           <span>Tgl</span>
           <span>{formatTanggal(doc.date)}</span>
         </div>
-        <div className="flex justify-between">
-          <span>{docType === "purchase" ? "Supplier" : "Pelanggan"}</span>
-          <span className="max-w-[60%] truncate text-right">{contact?.name ?? "-"}</span>
+        <div className="mt-0.5">
+          <span className="text-[9px] text-black/60">
+            {docType === "purchase" ? "Supplier" : "Pelanggan"}
+          </span>
+          <div className="text-[14px] font-bold leading-tight">{contact?.name ?? "-"}</div>
         </div>
       </div>
 
