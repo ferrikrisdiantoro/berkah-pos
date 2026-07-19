@@ -57,7 +57,7 @@ export function DashboardProductSearch({ products }: { products: DashProduct[] }
                 return (
                   <Link
                     key={p.id}
-                    href={`/produk/${p.id}`}
+                    href={`/rekap?jenis=jual&produk=${encodeURIComponent(p.name)}`}
                     className="flex items-center justify-between gap-3 py-2.5 hover:bg-muted/40"
                   >
                     <div className="min-w-0">

@@ -60,7 +60,9 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt="" width={110} height={110} style={{ objectFit: "contain" }} />
           )}
-          <div style={{ display: "flex", fontSize: 24, fontWeight: 700, marginTop: 6 }}>
+          <div
+            style={{ display: "flex", fontSize: 24, fontWeight: 700, marginTop: 6, color: "#1d4ed8" }}
+          >
             {d.storeName}
           </div>
           {d.address && (
@@ -142,7 +144,7 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
           {row("Subtotal", d.subtotal)}
           {row("TOTAL", d.total, true)}
           {row("Bayar", d.bayar)}
-          {row("Sisa", d.sisa)}
+          {row("Sisa Tagihan", d.sisa)}
           {d.previousDebt && d.totalDebt
             ? row("Tunggakan lain", d.previousDebt)
             : null}
@@ -165,7 +167,6 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
               {d.bankInfo}
             </div>
           )}
-          <div style={{ display: "flex", fontSize: 13, marginTop: 4 }}>{`--- ${d.storeName} ---`}</div>
           {d.signature && <div style={{ display: "flex", fontSize: 12, marginTop: 2 }}>{d.signature}</div>}
         </div>
       </div>

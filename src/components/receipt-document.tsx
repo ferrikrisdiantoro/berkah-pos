@@ -1,4 +1,4 @@
-import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggal } from "@/lib/utils";
 import { STATUS_LABEL, type BusinessSettings, type Contact, type DocItem, type DocStatus, type Purchase } from "@/lib/types";
 
 const TITLE = { purchase: "NOTA PEMBELIAN", sale: "NOTA PENJUALAN" };
@@ -33,7 +33,9 @@ export function ReceiptDocument({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={b.logo_url} alt="Logo" className="mx-auto mb-1 h-24 w-24 object-contain" />
         )}
-        <div className="text-[13px] font-bold leading-tight">{b.name ?? "WL Pemburu Bandeng"}</div>
+        <div className="text-[15px] font-bold leading-tight text-blue-700">
+          {b.name ?? "WL Pemburu Bandeng"}
+        </div>
         {b.address && <div className="text-[9px] leading-tight">{b.address}</div>}
         {b.phone && <div className="text-[9px]">Telp: {b.phone}</div>}
       </div>
@@ -100,23 +102,23 @@ export function ReceiptDocument({
       <div className="my-1 border-t border-dashed border-black" />
 
       <div className="text-[10px] leading-snug">
-        <Row label="Subtotal" value={formatRupiah(doc.subtotal)} />
+        <Row label="Subtotal" value={formatNumber(doc.subtotal)} />
         {Number(doc.discount_total) > 0 && (
-          <Row label="Diskon" value={"-" + formatRupiah(doc.discount_total)} />
+          <Row label="Diskon" value={"-" + formatNumber(doc.discount_total)} />
         )}
-        {Number(doc.tax_total) > 0 && <Row label="Pajak" value={formatRupiah(doc.tax_total)} />}
+        {Number(doc.tax_total) > 0 && <Row label="Pajak" value={formatNumber(doc.tax_total)} />}
         <div className="flex justify-between text-[12px] font-bold">
           <span>TOTAL</span>
-          <span>{formatRupiah(doc.total)}</span>
+          <span>{formatNumber(doc.total)}</span>
         </div>
-        <Row label="Bayar" value={formatRupiah(bayar)} />
-        <Row label="Sisa" value={formatRupiah(sisa)} />
+        <Row label="Bayar" value={formatNumber(bayar)} />
+        <Row label="Sisa Tagihan" value={formatNumber(sisa)} />
         {previousDebt > 0 && (
           <>
-            <Row label="Tunggakan lain" value={formatRupiah(previousDebt)} />
+            <Row label="Tunggakan lain" value={formatNumber(previousDebt)} />
             <div className="flex justify-between text-[12px] font-bold">
               <span>TOTAL HUTANG</span>
-              <span>{formatRupiah(sisa + previousDebt)}</span>
+              <span>{formatNumber(sisa + previousDebt)}</span>
             </div>
           </>
         )}
@@ -136,7 +138,6 @@ export function ReceiptDocument({
         {b.bank_info && (
           <div className="mt-1 whitespace-pre-line font-semibold">{b.bank_info}</div>
         )}
-        <div className="mt-1">--- {b.name ?? "WL Pemburu Bandeng"} ---</div>
         {b.signature_note && <div className="mt-0.5">{b.signature_note}</div>}
       </div>
     </div>

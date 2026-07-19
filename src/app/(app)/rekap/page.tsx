@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,14 +7,7 @@ import { formatRupiah, formatNumber, formatTanggal, todayISO } from "@/lib/utils
 
 export const dynamic = "force-dynamic";
 
-type ItemRow = {
-  product_id: string | null;
-  description: string;
-  qty: number;
-  line_total: number;
-  price_pending: boolean;
-  purchases: { date: string } | { date: string }[] | null;
-};
+type Jenis = "jual" | "beli";
 
 type Recap = {
   key: string;
@@ -24,40 +18,70 @@ type Recap = {
   hasPending: boolean;
 };
 
-export default async function RekapPembelianPage({
+function daysAgoISO(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+export default async function RekapPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ jenis?: string; from?: string; to?: string; produk?: string }>;
 }) {
   const sp = await searchParams;
-  // Default: hari ini. Bisa diubah ke rentang tanggal berapa pun.
+  const jenis: Jenis = sp.jenis === "beli" ? "beli" : "jual";
   const today = todayISO();
-  const from = sp.from || today;
+  // Default 7 hari terakhir supaya "hari ini / kemarin / lusa" langsung kelihatan.
+  const from = sp.from || daysAgoISO(6);
   const to = sp.to || today;
+  const produk = (sp.produk || "").trim();
+
+  const itemTable = jenis === "jual" ? "sale_items" : "purchase_items";
+  const parentTable = jenis === "jual" ? "sales" : "purchases";
 
   const supabase = await createClient();
   const { data } = await supabase
-    .from("purchase_items")
+    .from(itemTable)
     .select(
-      "product_id, description, qty, line_total, price_pending, purchases!inner(date, id)",
+      `product_id, description, qty, line_total, price_pending, ${parentTable}!inner(date, id)`,
     )
-    .gte("purchases.date", from)
-    .lte("purchases.date", to);
+    .gte(`${parentTable}.date`, from)
+    .lte(`${parentTable}.date`, to);
 
-  const rows = (data ?? []) as unknown as (ItemRow & {
-    purchases: { date: string; id: string };
-  })[];
+  type Row = {
+    product_id: string | null;
+    description: string;
+    qty: number;
+    line_total: number;
+    price_pending: boolean;
+  } & Record<string, { date: string; id: string }>;
 
-  // Kelompokkan per jenis barang (produk kalau ada; kalau manual, per nama).
+  let rows = (data ?? []) as unknown as Row[];
+
+  // Filter satu produk (dari klik di dashboard).
+  if (produk) {
+    const s = produk.toLowerCase();
+    rows = rows.filter((r) => (r.description ?? "").toLowerCase().includes(s));
+  }
+
   const map = new Map<string, Recap>();
   for (const r of rows) {
-    const key = r.product_id ?? `manual:${r.description.trim().toLowerCase()}`;
+    const parent = r[parentTable];
+    const key = r.product_id ?? `manual:${(r.description ?? "").trim().toLowerCase()}`;
     const g =
       map.get(key) ??
-      { key, name: r.description.trim() || "(tanpa nama)", qty: 0, total: 0, notas: new Set<string>(), hasPending: false };
+      {
+        key,
+        name: (r.description ?? "").trim() || "(tanpa nama)",
+        qty: 0,
+        total: 0,
+        notas: new Set<string>(),
+        hasPending: false,
+      };
     g.qty += Number(r.qty) || 0;
     g.total += Number(r.line_total) || 0;
-    if (r.purchases?.id) g.notas.add(r.purchases.id);
+    if (parent?.id) g.notas.add(parent.id);
     if (r.price_pending) g.hasPending = true;
     map.set(key, g);
   }
@@ -67,16 +91,44 @@ export default async function RekapPembelianPage({
   const grandTotal = recap.reduce((s, r) => s + r.total, 0);
   const sameDay = from === to;
 
+  const label = jenis === "jual" ? "Penjualan" : "Pembelian";
+  const qs = (o: Record<string, string>) => {
+    const p = new URLSearchParams({ jenis, from, to, ...(produk ? { produk } : {}), ...o });
+    return `/rekap?${p.toString()}`;
+  };
+
   return (
     <div>
       <PageHeader
-        title="Rekap Pembelian per Jenis"
-        subtitle="Total pembelian tiap jenis barang (mis. berapa kg Nila, Layur, dst)."
+        title={`Rekap ${label} per Jenis`}
+        subtitle="Total tiap jenis barang (mis. berapa kg Nila, Layur, Udang, dst)."
       />
+
+      {/* Toggle Jual / Beli */}
+      <div className="mb-4 inline-flex overflow-hidden rounded-md border border-border">
+        <Link
+          href={qs({ jenis: "jual" })}
+          className={`px-4 py-2 text-sm font-medium ${
+            jenis === "jual" ? "bg-primary text-primary-foreground" : "bg-background"
+          }`}
+        >
+          Penjualan
+        </Link>
+        <Link
+          href={qs({ jenis: "beli" })}
+          className={`px-4 py-2 text-sm font-medium ${
+            jenis === "beli" ? "bg-primary text-primary-foreground" : "bg-background"
+          }`}
+        >
+          Pembelian
+        </Link>
+      </div>
 
       <Card className="mb-4">
         <CardContent className="pt-5">
           <form method="get" className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="jenis" value={jenis} />
+            {produk && <input type="hidden" name="produk" value={produk} />}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm text-muted-foreground" htmlFor="from">
                 Dari
@@ -106,9 +158,21 @@ export default async function RekapPembelianPage({
             </button>
           </form>
           <p className="mt-3 text-xs text-muted-foreground">
+            {produk && (
+              <>
+                Difilter produk: <b>{produk}</b>{" "}
+                <Link
+                  href={`/rekap?jenis=${jenis}&from=${from}&to=${to}`}
+                  className="text-primary hover:underline"
+                >
+                  (hapus filter)
+                </Link>{" "}
+                ·{" "}
+              </>
+            )}
             {sameDay
-              ? `Menampilkan pembelian tanggal ${formatTanggal(from)}.`
-              : `Menampilkan pembelian ${formatTanggal(from)} — ${formatTanggal(to)}.`}
+              ? `Rekap ${label.toLowerCase()} tanggal ${formatTanggal(from)}.`
+              : `Rekap ${label.toLowerCase()} ${formatTanggal(from)} — ${formatTanggal(to)}.`}
           </p>
         </CardContent>
       </Card>
@@ -117,7 +181,7 @@ export default async function RekapPembelianPage({
         <CardContent className="pt-5">
           {recap.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
-              Belum ada pembelian pada rentang tanggal ini.
+              Belum ada {label.toLowerCase()} pada rentang tanggal ini.
             </p>
           ) : (
             <Table>
@@ -135,9 +199,7 @@ export default async function RekapPembelianPage({
                     <TD className="font-medium">
                       {r.name}
                       {r.hasPending && (
-                        <span className="ml-1 text-xs text-amber-600">
-                          (ada harga menyusul)
-                        </span>
+                        <span className="ml-1 text-xs text-amber-600">(ada harga menyusul)</span>
                       )}
                     </TD>
                     <TD className="text-right text-muted-foreground">{r.notas.size}</TD>

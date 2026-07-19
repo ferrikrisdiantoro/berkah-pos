@@ -4,7 +4,7 @@ import { getPreviousDebts } from "@/lib/customer-debt";
 import { ReceiptDocument } from "@/components/receipt-document";
 import { ReceiptActions } from "@/components/receipt-actions";
 import { NativePrintButton } from "@/components/native-print-button";
-import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggal } from "@/lib/utils";
 import type { ReceiptData } from "@/lib/native-print";
 import type { BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
 
@@ -69,20 +69,20 @@ export default async function StrukPenjualanPage({
       description: it.description,
       qtyPrice: it.price_pending
         ? `${formatNumber(it.qty)} x —`
-        : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
+        : `${formatNumber(it.qty)} x ${formatNumber(it.unit_price)}`,
       qty: formatNumber(it.qty),
       price: it.price_pending ? "—" : formatNumber(it.unit_price),
-      total: it.price_pending ? "—" : formatRupiah(it.line_total),
+      total: it.price_pending ? "—" : formatNumber(it.line_total),
       pending: !!it.price_pending,
     })),
-    subtotal: formatRupiah(s.subtotal),
-    total: formatRupiah(s.total),
-    bayar: formatRupiah(s.paid_total),
-    sisa: formatRupiah(sisaNota),
+    subtotal: formatNumber(s.subtotal),
+    total: formatNumber(s.total),
+    bayar: formatNumber(s.paid_total),
+    sisa: formatNumber(sisaNota),
     ...(previousDebt > 0
       ? {
-          previousDebt: formatRupiah(previousDebt),
-          totalDebt: formatRupiah(sisaNota + previousDebt),
+          previousDebt: formatNumber(previousDebt),
+          totalDebt: formatNumber(sisaNota + previousDebt),
         }
       : {}),
   };

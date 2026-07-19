@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { renderReceiptImage } from "@/lib/receipt-image";
 import { getBaseUrl } from "@/lib/base-url";
-import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggal } from "@/lib/utils";
 import type { DocItem } from "@/lib/types";
 import type { ReceiptData } from "@/lib/native-print";
 
@@ -36,16 +36,16 @@ export async function GET(
       description: it.description,
       qtyPrice: it.price_pending
         ? `${formatNumber(it.qty)} x —`
-        : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
+        : `${formatNumber(it.qty)} x ${formatNumber(it.unit_price)}`,
       qty: formatNumber(it.qty),
       price: it.price_pending ? "—" : formatNumber(it.unit_price),
-      total: it.price_pending ? "—" : formatRupiah(it.line_total),
+      total: it.price_pending ? "—" : formatNumber(it.line_total),
       pending: !!it.price_pending,
     })),
-    subtotal: formatRupiah(p.subtotal),
-    total: formatRupiah(p.total),
-    bayar: formatRupiah(p.paid_total),
-    sisa: formatRupiah(Math.max(0, Number(p.total) - Number(p.paid_total))),
+    subtotal: formatNumber(p.subtotal),
+    total: formatNumber(p.total),
+    bayar: formatNumber(p.paid_total),
+    sisa: formatNumber(Math.max(0, Number(p.total) - Number(p.paid_total))),
   };
 
   const logo = b.logo_url ? `${await getBaseUrl()}${b.logo_url}` : null;

@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getPreviousDebts } from "@/lib/customer-debt";
 import { renderReceiptImage } from "@/lib/receipt-image";
 import { getBaseUrl } from "@/lib/base-url";
-import { formatRupiah, formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggal } from "@/lib/utils";
 import type { DocItem } from "@/lib/types";
 import type { ReceiptData } from "@/lib/native-print";
 
@@ -38,16 +38,16 @@ export async function GET(
       description: it.description,
       qtyPrice: it.price_pending
         ? `${formatNumber(it.qty)} x —`
-        : `${formatNumber(it.qty)} x ${formatRupiah(it.unit_price)}`,
+        : `${formatNumber(it.qty)} x ${formatNumber(it.unit_price)}`,
       qty: formatNumber(it.qty),
       price: it.price_pending ? "—" : formatNumber(it.unit_price),
-      total: it.price_pending ? "—" : formatRupiah(it.line_total),
+      total: it.price_pending ? "—" : formatNumber(it.line_total),
       pending: !!it.price_pending,
     })),
-    subtotal: formatRupiah(s.subtotal),
-    total: formatRupiah(s.total),
-    bayar: formatRupiah(s.paid_total),
-    sisa: formatRupiah(Math.max(0, Number(s.total) - Number(s.paid_total))),
+    subtotal: formatNumber(s.subtotal),
+    total: formatNumber(s.total),
+    bayar: formatNumber(s.paid_total),
+    sisa: formatNumber(Math.max(0, Number(s.total) - Number(s.paid_total))),
   };
 
   const sisaNota = Math.max(0, Number(s.total) - Number(s.paid_total));
@@ -68,8 +68,8 @@ export async function GET(
     }
   }
   if (previousDebt > 0) {
-    receipt.previousDebt = formatRupiah(previousDebt);
-    receipt.totalDebt = formatRupiah(sisaNota + previousDebt);
+    receipt.previousDebt = formatNumber(previousDebt);
+    receipt.totalDebt = formatNumber(sisaNota + previousDebt);
   }
 
   const logo = b.logo_url ? `${await getBaseUrl()}${b.logo_url}` : null;

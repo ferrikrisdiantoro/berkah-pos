@@ -52,7 +52,7 @@ export function DashboardOutstandingSearch({ parties }: { parties: OutstandingPa
                 key={`${p.kind}-${p.name}-${i}`}
                 href={
                   p.kind === "piutang"
-                    ? `/penjualan?q=${encodeURIComponent(p.name)}&f=partial`
+                    ? `/penjualan?q=${encodeURIComponent(p.name)}`
                     : `/pembelian?q=${encodeURIComponent(p.name)}`
                 }
                 className="flex items-center justify-between gap-3 py-2.5 hover:bg-muted/40"
