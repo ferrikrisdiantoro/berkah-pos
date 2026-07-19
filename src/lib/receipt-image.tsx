@@ -143,12 +143,12 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
           {row("TOTAL", d.total, true)}
           {row("Bayar", d.bayar)}
           {row("Sisa", d.sisa)}
-          {d.previousDebt && d.totalDebt && (
-            <>
-              {row("Tunggakan lain", d.previousDebt)}
-              {row("TOTAL HUTANG", d.totalDebt, true)}
-            </>
-          )}
+          {d.previousDebt && d.totalDebt
+            ? row("Tunggakan lain", d.previousDebt)
+            : null}
+          {d.previousDebt && d.totalDebt
+            ? row("TOTAL HUTANG", d.totalDebt, true)
+            : null}
           {d.items.some((it) => it.pending) && (
             <div style={{ display: "flex", fontSize: 13, color: "#b45309", marginTop: 4 }}>
               *total belum final (ada harga menyusul)
