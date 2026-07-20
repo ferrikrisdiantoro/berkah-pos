@@ -1,5 +1,5 @@
-import { formatNumber, formatTanggal } from "@/lib/utils";
-import { STATUS_LABEL, type BusinessSettings, type Contact, type DocItem, type DocStatus, type Purchase } from "@/lib/types";
+import { formatNumber, formatTanggalPendek } from "@/lib/utils";
+import { type BusinessSettings, type Contact, type DocItem, type Purchase } from "@/lib/types";
 
 const TITLE = { purchase: "NOTA PEMBELIAN", sale: "NOTA PENJUALAN" };
 
@@ -43,38 +43,27 @@ export function ReceiptDocument({
       <div className="my-1 border-t border-dashed border-black" />
 
       <div className="text-[10px] leading-snug">
-        <div className="flex justify-between">
-          <span>
-            {(docType === "sale" ? b.receipt_title_sale : b.receipt_title_purchase) ??
-              TITLE[docType]}
-          </span>
-          <span>{STATUS_LABEL[doc.status as DocStatus]}</span>
+        <div>
+          {docType === "purchase" ? "Tagihan Dari Supplier : " : "Tagihan Kepada Pelanggan : "}
+          <span className="text-[13px] font-bold">{contact?.name ?? "-"}</span>
         </div>
-        <div className="flex justify-between">
-          <span>No</span>
-          <span>{doc.number}</span>
+        <div>
+          {(docType === "sale" ? b.receipt_title_sale : b.receipt_title_purchase) ??
+            TITLE[docType]}
+          : {doc.number}
         </div>
-        <div className="flex justify-between">
-          <span>Tgl</span>
-          <span>{formatTanggal(doc.date)}</span>
-        </div>
-        <div className="mt-0.5">
-          <span className="text-[9px] text-black/60">
-            {docType === "purchase" ? "Supplier" : "Pelanggan"}
-          </span>
-          <div className="text-[14px] font-bold leading-tight">{contact?.name ?? "-"}</div>
-        </div>
+        <div>Tanggal : {formatTanggalPendek(doc.date)}</div>
       </div>
 
       <div className="my-1 border-t border-dashed border-black" />
 
       <table className="w-full text-[10px] leading-snug">
         <thead>
-          <tr className="text-left align-bottom">
-            <th className="font-semibold">Produk</th>
-            <th className="text-right font-semibold">Qty</th>
-            <th className="text-right font-semibold">Harga</th>
-            <th className="text-right font-semibold">Jumlah</th>
+          <tr className="text-left align-bottom text-[10px] font-bold text-black">
+            <th className="font-bold">Produk</th>
+            <th className="text-right font-bold">Kuantitas</th>
+            <th className="text-right font-bold">Harga</th>
+            <th className="text-right font-bold">Jumlah</th>
           </tr>
         </thead>
         <tbody>
@@ -102,24 +91,17 @@ export function ReceiptDocument({
       <div className="my-1 border-t border-dashed border-black" />
 
       <div className="text-[10px] leading-snug">
-        <Row label="Subtotal" value={formatNumber(doc.subtotal)} />
         {Number(doc.discount_total) > 0 && (
           <Row label="Diskon" value={"-" + formatNumber(doc.discount_total)} />
         )}
         {Number(doc.tax_total) > 0 && <Row label="Pajak" value={formatNumber(doc.tax_total)} />}
-        <div className="flex justify-between text-[12px] font-bold">
-          <span>TOTAL</span>
-          <span>{formatNumber(doc.total)}</span>
-        </div>
-        <Row label="Bayar" value={formatNumber(bayar)} />
-        <Row label="Sisa Tagihan" value={formatNumber(sisa)} />
+        <Row label="TOTAL" value={formatNumber(doc.total)} strong />
+        <Row label="SISA TAGIHAN" value={formatNumber(sisa)} strong />
+        {bayar > 0 && <Row label="Bayar" value={formatNumber(bayar)} />}
         {previousDebt > 0 && (
           <>
-            <Row label="Tunggakan lain" value={formatNumber(previousDebt)} />
-            <div className="flex justify-between text-[12px] font-bold">
-              <span>TOTAL HUTANG</span>
-              <span>{formatNumber(sisa + previousDebt)}</span>
-            </div>
+            <Row label="Sisa Hutang" value={formatNumber(previousDebt)} />
+            <Row label="Total Hutang" value={formatNumber(sisa + previousDebt)} />
           </>
         )}
         <div className="mt-1 text-center text-[13px] font-bold">
@@ -144,11 +126,20 @@ export function ReceiptDocument({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+/** Baris ringkasan: label & nilai sama-sama rata kanan (satu blok, gaya nota). */
+function Row({
+  label,
+  value,
+  strong,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}) {
   return (
-    <div className="flex justify-between">
-      <span>{label}</span>
-      <span>{value}</span>
+    <div className={`flex justify-end ${strong ? "text-[12px] font-bold" : ""}`}>
+      <span className="pr-2 text-right">{label}</span>
+      <span className="w-[38%] text-right">{value}</span>
     </div>
   );
 }

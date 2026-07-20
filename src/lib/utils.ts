@@ -46,6 +46,15 @@ export function formatTanggal(iso: string | null | undefined): string {
   return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+/** Format tanggal ISO -> "20/07/2026" (dipakai di struk/nota). */
+export function formatTanggalPendek(iso: string | null | undefined): string {
+  if (!iso) return "-";
+  const d = new Date(iso + (iso.length === 10 ? "T00:00:00" : ""));
+  if (isNaN(d.getTime())) return "-";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
 /** yyyy-mm-dd hari ini (zona lokal) untuk default input date. */
 export function todayISO(): string {
   const d = new Date();

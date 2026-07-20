@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ReceiptDocument } from "@/components/receipt-document";
 import { ReceiptActions } from "@/components/receipt-actions";
 import { NativePrintButton } from "@/components/native-print-button";
-import { formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggalPendek } from "@/lib/utils";
 import type { ReceiptData } from "@/lib/native-print";
 import type { BusinessSettings, Contact, DocItem, Purchase } from "@/lib/types";
 
@@ -51,8 +51,8 @@ export default async function StrukPembelianPage({
       p.status === "paid" ? "*** LUNAS ***" : p.status === "partial" ? "*** DP ***" : "*** BELUM LUNAS ***",
     title: b.receipt_title_purchase ?? "NOTA PEMBELIAN",
     number: p.number,
-    dateLabel: formatTanggal(p.date),
-    contactRole: "Supplier",
+    dateLabel: formatTanggalPendek(p.date),
+    contactRole: "Tagihan Dari Supplier",
     contactName: p.contact?.name ?? "-",
     items: items.map((it) => ({
       description: it.description,

@@ -4,7 +4,7 @@ import { getPreviousDebts } from "@/lib/customer-debt";
 import { ReceiptDocument } from "@/components/receipt-document";
 import { ReceiptActions } from "@/components/receipt-actions";
 import { NativePrintButton } from "@/components/native-print-button";
-import { formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggalPendek } from "@/lib/utils";
 import type { ReceiptData } from "@/lib/native-print";
 import type { BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
 
@@ -62,8 +62,8 @@ export default async function StrukPenjualanPage({
       s.status === "paid" ? "*** LUNAS ***" : s.status === "partial" ? "*** DP ***" : "*** BELUM LUNAS ***",
     title: b.receipt_title_sale ?? "NOTA PENJUALAN",
     number: s.number,
-    dateLabel: formatTanggal(s.date),
-    contactRole: "Pelanggan",
+    dateLabel: formatTanggalPendek(s.date),
+    contactRole: "Tagihan Kepada Pelanggan",
     contactName: s.contact?.name ?? "-",
     items: items.map((it) => ({
       description: it.description,

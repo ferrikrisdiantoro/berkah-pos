@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { renderReceiptImage } from "@/lib/receipt-image";
 import { getBaseUrl } from "@/lib/base-url";
-import { formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggalPendek } from "@/lib/utils";
 import type { DocItem } from "@/lib/types";
 import type { ReceiptData } from "@/lib/native-print";
 
@@ -29,8 +29,8 @@ export async function GET(
     signature: b.signature_note,
     title: b.receipt_title_purchase ?? "NOTA PEMBELIAN",
     number: p.number,
-    dateLabel: formatTanggal(p.date),
-    contactRole: "Supplier",
+    dateLabel: formatTanggalPendek(p.date),
+    contactRole: "Tagihan Dari Supplier",
     contactName: data.contact?.name ?? "-",
     items: items.map((it) => ({
       description: it.description,

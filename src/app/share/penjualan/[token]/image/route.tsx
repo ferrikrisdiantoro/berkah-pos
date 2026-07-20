@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getPreviousDebts } from "@/lib/customer-debt";
 import { renderReceiptImage } from "@/lib/receipt-image";
 import { getBaseUrl } from "@/lib/base-url";
-import { formatNumber, formatTanggal } from "@/lib/utils";
+import { formatNumber, formatTanggalPendek } from "@/lib/utils";
 import type { DocItem } from "@/lib/types";
 import type { ReceiptData } from "@/lib/native-print";
 
@@ -31,8 +31,8 @@ export async function GET(
     signature: b.signature_note,
     title: b.receipt_title_sale ?? "NOTA PENJUALAN",
     number: s.number,
-    dateLabel: formatTanggal(s.date),
-    contactRole: "Pelanggan",
+    dateLabel: formatTanggalPendek(s.date),
+    contactRole: "Tagihan Kepada Pelanggan",
     contactName: data.contact?.name ?? "-",
     items: items.map((it) => ({
       description: it.description,

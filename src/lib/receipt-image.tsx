@@ -13,19 +13,30 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
     (d.items.some((it) => it.pending) ? 34 : 0) +
     (d.previousDebt && d.totalDebt ? 72 : 0);
 
-  const row = (left: string, right: string, bold = false) => (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        width: "100%",
-        fontSize: bold ? 20 : 16,
-        fontWeight: bold ? 700 : 400,
-        marginTop: 2,
-      }}
-    >
-      <span>{left}</span>
-      <span>{right}</span>
+  // Baris ringkasan gaya nota: label & nilai sama-sama rata kanan (satu blok).
+  const sumRow = (label: string, value: string, strong = false) => (
+    <div style={{ display: "flex", marginTop: 3 }}>
+      <span
+        style={{
+          width: 190,
+          textAlign: "right",
+          paddingRight: 14,
+          fontSize: strong ? 18 : 16,
+          fontWeight: strong ? 700 : 400,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          width: 140,
+          textAlign: "right",
+          fontSize: strong ? 18 : 16,
+          fontWeight: strong ? 700 : 400,
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 
@@ -85,15 +96,14 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
         {divider}
 
         <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-          {row(d.title, "")}
-          {row("No", d.number)}
-          {row("Tgl", d.dateLabel)}
-          <div style={{ display: "flex", fontSize: 12, color: "#555", marginTop: 4 }}>
-            {d.contactRole}
+          <div style={{ display: "flex", alignItems: "baseline", fontSize: 16, marginBottom: 3 }}>
+            <span>{`${d.contactRole} : `}</span>
+            <span style={{ fontWeight: 700, fontSize: 19 }}>{d.contactName}</span>
           </div>
-          <div style={{ display: "flex", fontSize: 22, fontWeight: 700, lineHeight: 1.1 }}>
-            {d.contactName}
+          <div style={{ display: "flex", fontSize: 16, marginBottom: 3 }}>
+            {`${d.title}: ${d.number}`}
           </div>
+          <div style={{ display: "flex", fontSize: 16 }}>{`Tanggal : ${d.dateLabel}`}</div>
         </div>
 
         {divider}
@@ -104,15 +114,15 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
             style={{
               display: "flex",
               width: "100%",
-              fontSize: 12,
+              fontSize: 15,
               fontWeight: 700,
-              color: "#555",
+              color: "#000",
               paddingBottom: 4,
             }}
           >
             <span style={{ flex: 1 }}>Produk</span>
-            <span style={{ width: 48, textAlign: "right" }}>Qty</span>
-            <span style={{ width: 92, textAlign: "right" }}>Harga</span>
+            <span style={{ width: 78, textAlign: "right" }}>Kuantitas</span>
+            <span style={{ width: 84, textAlign: "right" }}>Harga</span>
             <span style={{ width: 104, textAlign: "right" }}>Jumlah</span>
           </div>
           {d.items.map((it, i) => (
@@ -129,8 +139,8 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
               <span style={{ flex: 1, fontWeight: 600, paddingRight: 4 }}>
                 {it.description + (it.pending ? " *" : "")}
               </span>
-              <span style={{ width: 48, textAlign: "right" }}>{it.qty}</span>
-              <span style={{ width: 92, textAlign: "right" }}>{it.price}</span>
+              <span style={{ width: 78, textAlign: "right" }}>{it.qty}</span>
+              <span style={{ width: 84, textAlign: "right" }}>{it.price}</span>
               <span style={{ width: 104, textAlign: "right", fontWeight: 600 }}>
                 {it.total}
               </span>
@@ -140,17 +150,19 @@ export function renderReceiptImage(d: ReceiptData, logoUrl?: string | null) {
 
         {divider}
 
-        <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-          {row("Subtotal", d.subtotal)}
-          {row("TOTAL", d.total, true)}
-          {row("Bayar", d.bayar)}
-          {row("Sisa Tagihan", d.sisa)}
-          {d.previousDebt && d.totalDebt
-            ? row("Tunggakan lain", d.previousDebt)
-            : null}
-          {d.previousDebt && d.totalDebt
-            ? row("TOTAL HUTANG", d.totalDebt, true)
-            : null}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            alignItems: "flex-end",
+          }}
+        >
+          {sumRow("TOTAL", d.total, true)}
+          {sumRow("SISA TAGIHAN", d.sisa, true)}
+          {d.bayar && d.bayar !== "0" ? sumRow("Bayar", d.bayar) : null}
+          {d.previousDebt && d.totalDebt ? sumRow("Sisa Hutang", d.previousDebt) : null}
+          {d.previousDebt && d.totalDebt ? sumRow("Total Hutang", d.totalDebt) : null}
           {d.items.some((it) => it.pending) && (
             <div style={{ display: "flex", fontSize: 13, color: "#b45309", marginTop: 4 }}>
               *total belum final (ada harga menyusul)
