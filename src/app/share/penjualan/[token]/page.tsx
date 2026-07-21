@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPreviousDebts } from "@/lib/customer-debt";
+import { getEffectivePreviousDebt } from "@/lib/customer-debt";
 import { InvoiceDocument, type InvoicePayment } from "@/components/invoice-document";
 import { SharePrintButton } from "@/components/share-print-button";
 import type { BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
@@ -24,24 +24,14 @@ export default async function ShareSalePage({
     (a, b) => a.position - b.position,
   );
 
-  // Tunggakan: pakai input manual bila diisi. Selain itu hitung otomatis dari
-  // nota lain (butuh service role — anon terhalang RLS). Jangan menggagalkan
-  // render nota bila service key tak tersedia.
+  // Tunggakan: override manual per-nota bila diisi. Selain itu otomatis =
+  // sisa nota lain + saldo tunggakan lama kontak (butuh service role — anon
+  // terhalang RLS). Jangan menggagalkan render nota bila service key tak ada.
   let previousDebt = 0;
-  if (doc.manual_previous_debt != null) {
-    previousDebt = Number(doc.manual_previous_debt);
-  } else {
-    try {
-      ({ total: previousDebt } = await getPreviousDebts(
-        createAdminClient(),
-        "sales",
-        doc.contact_id,
-        doc.id,
-        doc.date,
-      ));
-    } catch {
-      previousDebt = 0;
-    }
+  try {
+    ({ total: previousDebt } = await getEffectivePreviousDebt(createAdminClient(), "sales", doc));
+  } catch {
+    previousDebt = doc.manual_previous_debt != null ? Number(doc.manual_previous_debt) : 0;
   }
 
   return (

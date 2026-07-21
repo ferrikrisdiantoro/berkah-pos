@@ -394,12 +394,14 @@ export function InvoiceEditor({
                 checked={manualOn}
                 onChange={(e) => setManualOn(e.target.checked)}
               />
-              Isi tunggakan sebelumnya secara manual
+              Timpa tunggakan sebelumnya khusus nota ini (jarang dipakai)
             </label>
             <p className="mt-1 text-xs text-muted-foreground">
-              Untuk hutang lama yang belum tercatat di aplikasi. Jika dicentang,
-              angka ini yang dipakai di nota (menggantikan hitungan otomatis).
-              Kosongkan centang untuk pakai hitungan otomatis.
+              Untuk koreksi satu nota saja. Biasanya TIDAK perlu — tunggakan
+              lama yang berulang cukup dicatat sekali di halaman Kontak
+              pelanggan ini (&quot;Tunggakan Lama&quot;), nanti otomatis
+              terbawa ke tiap nota baru tanpa diketik ulang. Kosongkan centang
+              ini untuk pakai hitungan otomatis.
             </p>
             {manualOn && (
               <div className="mt-3 max-w-xs">

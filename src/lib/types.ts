@@ -65,6 +65,8 @@ export interface Contact {
   address: string | null;
   notes: string | null;
   is_active: boolean;
+  /** Saldo tunggakan lama (manual, di luar nota sistem) — tabel contact_debt_entries. */
+  manual_debt_balance?: number;
 }
 
 export const CONTACT_CATEGORIES: { value: string; label: string }[] = [

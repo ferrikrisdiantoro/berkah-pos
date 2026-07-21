@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPreviousDebts } from "@/lib/customer-debt";
+import { getEffectivePreviousDebt } from "@/lib/customer-debt";
 import { ReceiptDocument } from "@/components/receipt-document";
 import { ReceiptActions } from "@/components/receipt-actions";
 import { NativePrintButton } from "@/components/native-print-button";
@@ -42,14 +42,7 @@ export default async function StrukPenjualanPage({
   const b = (business ?? {}) as Partial<BusinessSettings>;
 
   const sisaNota = Math.max(0, Number(s.total) - Number(s.paid_total));
-  const { total: autoDebt } = await getPreviousDebts(
-    supabase,
-    "sales",
-    s.contact_id,
-    s.id,
-    s.date,
-  );
-  const previousDebt = s.manual_previous_debt != null ? Number(s.manual_previous_debt) : autoDebt;
+  const { total: previousDebt } = await getEffectivePreviousDebt(supabase, "sales", s);
 
   const receiptData: ReceiptData = {
     storeName: b.name ?? "WL Pemburu Bandeng",

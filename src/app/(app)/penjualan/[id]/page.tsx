@@ -15,7 +15,7 @@ import { DeleteButton } from "@/components/delete-button";
 import { deleteSalePaymentAction, deleteSaleAction } from "@/lib/actions/sales";
 import { formatRupiah, formatTanggal } from "@/lib/utils";
 import { getBaseUrl } from "@/lib/base-url";
-import { getPreviousDebts } from "@/lib/customer-debt";
+import { getEffectivePreviousDebt } from "@/lib/customer-debt";
 import type { BankAccount, BusinessSettings, Contact, DocItem, Sale } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -87,18 +87,10 @@ export default async function SaleDetailPage({
 
   const remaining = Number(s.total) - Number(s.paid_total);
 
-  // Tunggakan: pakai input manual bila diisi, selain itu hitung otomatis dari
-  // nota lain pelanggan yang sama (tanggal <= nota ini).
-  const isManualDebt = s.manual_previous_debt != null;
-  const { list: autoDebts, total: autoTotal } = await getPreviousDebts(
-    supabase,
-    "sales",
-    s.contact_id,
-    s.id,
-    s.date,
-  );
-  const prevDebts = isManualDebt ? [] : autoDebts;
-  const prevTotal = isManualDebt ? Number(s.manual_previous_debt) : autoTotal;
+  // Tunggakan: override manual per-nota bila diisi; selain itu otomatis =
+  // sisa nota lain + saldo tunggakan lama kontak (lihat halaman Kontak).
+  const { list: prevDebts, manualBalance, total: prevTotal, isOverride: isManualDebt } =
+    await getEffectivePreviousDebt(supabase, "sales", s);
 
   const base = await getBaseUrl();
   const shareUrl = `${base}/share/penjualan/${s.share_token}`;
@@ -176,6 +168,17 @@ export default async function SaleDetailPage({
                     <span className="font-medium">{formatRupiah(d.sisa)}</span>
                   </div>
                 ))}
+                {!isManualDebt && manualBalance > 0 && (
+                  <div className="flex items-center justify-between gap-2">
+                    <Link
+                      href={`/kontak/${s.contact_id}`}
+                      className="min-w-0 flex-1 truncate text-primary hover:underline"
+                    >
+                      Tunggakan lama (manual)
+                    </Link>
+                    <span className="font-medium">{formatRupiah(manualBalance)}</span>
+                  </div>
+                )}
                 <div className="mt-1 flex justify-between border-t border-border pt-2">
                   <span className="font-semibold text-amber-700">Total Tunggakan</span>
                   <span className="font-bold text-amber-700">
