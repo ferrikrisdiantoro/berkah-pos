@@ -12,6 +12,7 @@ type ItemInput = {
   discount_pct: number;
   tax_pct: number;
   price_pending: boolean;
+  vendor_qty: number | null;
 };
 
 function parseItems(raw: string): ItemInput[] {
@@ -25,6 +26,7 @@ function parseItems(raw: string): ItemInput[] {
   return arr
     .map((x) => {
       const o = x as Record<string, unknown>;
+      const vendorQtyRaw = o.vendor_qty;
       return {
         product_id: (o.product_id as string) || null,
         description: String(o.description ?? "").trim(),
@@ -33,6 +35,10 @@ function parseItems(raw: string): ItemInput[] {
         discount_pct: o.price_pending === true ? 0 : Math.min(100, Math.max(0, Number(o.discount_pct) || 0)),
         tax_pct: Math.min(100, Math.max(0, Number(o.tax_pct) || 0)),
         price_pending: o.price_pending === true,
+        vendor_qty:
+          vendorQtyRaw === null || vendorQtyRaw === undefined || vendorQtyRaw === ""
+            ? null
+            : Number(vendorQtyRaw) || 0,
       };
     })
     .filter((i) => i.description && i.qty > 0);
@@ -101,6 +107,7 @@ export async function savePurchaseAction(formData: FormData) {
     discount_pct: it.discount_pct,
     tax_pct: it.tax_pct,
     price_pending: it.price_pending,
+    vendor_qty: it.vendor_qty,
     position: idx,
   }));
   const { error: itemsErr } = await supabase.from("purchase_items").insert(rows);
@@ -138,6 +145,7 @@ export async function addPurchasePaymentAction(formData: FormData) {
     amount,
     method: String(formData.get("method") ?? "").trim() || null,
     notes: String(formData.get("notes") ?? "").trim() || null,
+    proof_url: String(formData.get("proof_url") ?? "").trim() || null,
     created_by: user?.id ?? null,
   });
   if (error) return { error: error.message };

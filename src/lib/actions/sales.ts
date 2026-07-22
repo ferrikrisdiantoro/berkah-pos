@@ -207,6 +207,7 @@ export async function addSalePaymentAction(formData: FormData) {
       amount,
       method: String(formData.get("method") ?? "").trim() || null,
       notes: String(formData.get("notes") ?? "").trim() || null,
+      proof_url: String(formData.get("proof_url") ?? "").trim() || null,
       created_by: user?.id ?? null,
     })
     .select("id")

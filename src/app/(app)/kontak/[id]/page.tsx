@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
 import { ContactDebtLedger, type DebtEntry } from "@/components/contact-debt-ledger";
 import { DeleteButton } from "@/components/delete-button";
@@ -32,12 +35,21 @@ export default async function EditContactPage({
   return (
     <div className="max-w-3xl">
       <PageHeader title="Edit Kontak" subtitle={contact.name}>
-        <DeleteButton
-          action={deleteContactAction}
-          id={contact.id}
-          redirectTo="/kontak"
-          confirmText={`Hapus kontak "${contact.name}"?`}
-        />
+        <div className="flex items-center gap-2">
+          {(contact.type === "supplier" || contact.type === "both") && (
+            <Link href={`/rekap-vendor?contact=${contact.id}`}>
+              <Button variant="outline">
+                <ClipboardList className="h-4 w-4" /> Rekap & Cetak PDF
+              </Button>
+            </Link>
+          )}
+          <DeleteButton
+            action={deleteContactAction}
+            id={contact.id}
+            redirectTo="/kontak"
+            confirmText={`Hapus kontak "${contact.name}"?`}
+          />
+        </div>
       </PageHeader>
       <div className="flex flex-col gap-4">
         <Card>

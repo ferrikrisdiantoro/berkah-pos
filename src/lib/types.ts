@@ -93,6 +93,10 @@ export interface DocItem {
   commission_amount?: number;
   owner_amount?: number;
   price_pending?: boolean;
+  /** Qty di nota supplier (pembelian saja) — beda dari qty timbangan sendiri. */
+  vendor_qty?: number | null;
+  /** Selisih qty timbangan - vendor_qty (generated, pembelian saja). */
+  susut?: number | null;
 }
 
 export type CommissionType = "percent" | "fixed_per_unit";

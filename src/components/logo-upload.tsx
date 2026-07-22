@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { fileToResizedDataUrl } from "@/lib/image-resize";
 
 /**
  * Upload gambar/logo untuk nota. Gambar di-resize di browser (maks 400px) lalu
@@ -20,31 +21,7 @@ export function LogoUpload({ initial }: { initial: string | null }) {
     if (!file) return;
     setBusy(true);
     try {
-      const url = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result));
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const i = new Image();
-        i.onload = () => resolve(i);
-        i.onerror = reject;
-        i.src = url;
-      });
-      const max = 400;
-      const scale = Math.min(1, max / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        // Latar putih agar PNG transparan tetap rapi saat dicetak.
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setDataUrl(canvas.toDataURL("image/jpeg", 0.85));
-      }
+      setDataUrl(await fileToResizedDataUrl(file, 400, 0.85));
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";

@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ImagePlus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { todayISO } from "@/lib/utils";
+import { fileToResizedDataUrl } from "@/lib/image-resize";
 import type { BankAccount } from "@/lib/types";
 
 type Action = (formData: FormData) => Promise<{ error?: string; ok?: boolean } | void>;
@@ -30,11 +32,28 @@ export function PaymentForm({
       (await action(fd)) ?? null,
     null,
   );
+  const [proofUrl, setProofUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (state?.ok) toast.success("Pembayaran tersimpan");
-    else if (state?.error) toast.error(state.error);
+    if (state?.ok) {
+      toast.success("Pembayaran tersimpan");
+      setProofUrl("");
+    } else if (state?.error) toast.error(state.error);
   }, [state]);
+
+  async function onProofFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      setProofUrl(await fileToResizedDataUrl(file, 500, 0.8));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -64,6 +83,42 @@ export function PaymentForm({
             </option>
           ))}
         </Select>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label>Bukti Transfer (opsional)</Label>
+        <input type="hidden" name="proof_url" value={proofUrl} />
+        <div className="flex items-center gap-3">
+          {proofUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={proofUrl}
+              alt="Bukti transfer"
+              className="h-16 w-16 rounded-md border border-border object-cover"
+            />
+          ) : null}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={onProofFile}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+          >
+            <ImagePlus className="h-4 w-4" />
+            {uploading ? "Memproses…" : proofUrl ? "Ganti Foto" : "Lampirkan Foto"}
+          </Button>
+          {proofUrl && (
+            <Button type="button" variant="ghost" size="sm" onClick={() => setProofUrl("")}>
+              <X className="h-4 w-4" /> Hapus
+            </Button>
+          )}
+        </div>
       </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.ok && <p className="text-sm text-success">Pembayaran tersimpan.</p>}

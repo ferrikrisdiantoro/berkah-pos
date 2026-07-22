@@ -28,6 +28,8 @@ type Row = {
   unit_price: number;
   discount_pct: number;
   price_pending: boolean;
+  /** Qty di nota supplier (pembelian saja) — null = tak diisi/tak ada selisih. */
+  vendor_qty: number | null;
 };
 
 export type InvoiceInitial = {
@@ -51,6 +53,7 @@ const newRow = (): Row => ({
   unit_price: 0,
   discount_pct: 0,
   price_pending: false,
+  vendor_qty: null,
 });
 
 function lineTotal(r: Row) {
@@ -91,6 +94,7 @@ export function InvoiceEditor({
           unit_price: Number(it.unit_price),
           discount_pct: Number(it.discount_pct),
           price_pending: !!it.price_pending,
+          vendor_qty: it.vendor_qty == null ? null : Number(it.vendor_qty),
         }))
       : [newRow()],
   );
@@ -169,6 +173,7 @@ export function InvoiceEditor({
         discount_pct: r.price_pending ? 0 : r.discount_pct,
         tax_pct: 0,
         price_pending: r.price_pending,
+        vendor_qty: kind === "purchase" ? r.vendor_qty : null,
       }));
     if (!contactId) return setError(`Pilih ${contactLabel.toLowerCase()}.`);
     if (items.length === 0) return setError("Tambahkan minimal satu item.");
@@ -236,7 +241,9 @@ export function InvoiceEditor({
               <thead>
                 <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
                   <th className="pb-2 pr-2 font-semibold">Produk / Deskripsi</th>
-                  <th className="pb-2 px-2 text-right font-semibold">Qty</th>
+                  <th className="pb-2 px-2 text-right font-semibold">
+                    Qty{kind === "purchase" ? " / Qty Vendor" : ""}
+                  </th>
                   <th className="pb-2 px-2 text-right font-semibold">Harga</th>
                   <th className="pb-2 px-2 text-right font-semibold">Disk %</th>
                   <th className="pb-2 px-2 text-right font-semibold">Jumlah</th>
@@ -294,6 +301,32 @@ export function InvoiceEditor({
                         value={r.qty}
                         onChange={(e) => update(r.key, { qty: Number(e.target.value) })}
                       />
+                      {kind === "purchase" && (
+                        <>
+                          <Input
+                            className="mt-1 h-8 w-24 text-right text-xs"
+                            type="number"
+                            step="any"
+                            min="0"
+                            placeholder="Qty vendor"
+                            value={r.vendor_qty ?? ""}
+                            onChange={(e) =>
+                              update(r.key, {
+                                vendor_qty: e.target.value === "" ? null : Number(e.target.value),
+                              })
+                            }
+                          />
+                          {r.vendor_qty != null && (
+                            <div
+                              className={`mt-0.5 text-right text-[11px] ${
+                                r.qty - r.vendor_qty < 0 ? "text-destructive" : "text-muted-foreground"
+                              }`}
+                            >
+                              susut {(r.qty - r.vendor_qty).toFixed(2)}
+                            </div>
+                          )}
+                        </>
+                      )}
                     </td>
                     <td className="px-2 py-2">
                       <MoneyInput

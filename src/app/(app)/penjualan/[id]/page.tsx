@@ -42,7 +42,7 @@ export default async function SaleDetailPage({
 
   const { data: payRows } = await supabase
     .from("payments")
-    .select("id, date, amount, method, account:bank_accounts(name)")
+    .select("id, date, amount, method, proof_url, account:bank_accounts(name)")
     .eq("sale_id", id)
     .order("date");
 
@@ -241,10 +241,22 @@ export default async function SaleDetailPage({
               <CardContent className="space-y-2">
                 {payRows.map((r) => (
                   <div key={r.id} className="flex items-center justify-between text-sm">
-                    <div>
-                      <div className="font-medium">{formatRupiah(r.amount)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatTanggal(r.date)}
+                    <div className="flex items-center gap-2">
+                      {r.proof_url && (
+                        <a href={r.proof_url} target="_blank" rel="noopener noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={r.proof_url}
+                            alt="Bukti transfer"
+                            className="h-10 w-10 rounded border border-border object-cover"
+                          />
+                        </a>
+                      )}
+                      <div>
+                        <div className="font-medium">{formatRupiah(r.amount)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatTanggal(r.date)}
+                        </div>
                       </div>
                     </div>
                     <form action={deleteSalePaymentAction}>
