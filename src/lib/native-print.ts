@@ -152,6 +152,35 @@ export async function shareImageNative(
   }
 }
 
+/**
+ * Bagikan file PDF (dibuat client-side, mis. lewat jsPDF) lewat plugin native
+ * Capacitor. WebView Android tak mendukung window.print()/download file,
+ * jadi PDF ditulis ke cache lalu dibagikan lewat share sheet OS.
+ */
+export async function sharePdfNative(
+  base64Data: string,
+  filename: string,
+  text: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const cap = (window as unknown as {
+    Capacitor?: { Plugins?: Record<string, unknown> };
+  }).Capacitor;
+  const Share = cap?.Plugins?.["Share"] as SharePlugin | undefined;
+  const Filesystem = cap?.Plugins?.["Filesystem"] as FilesystemPlugin | undefined;
+
+  if (!Share || !Filesystem) {
+    return { ok: false, error: "Plugin share/filesystem belum aktif di aplikasi." };
+  }
+
+  try {
+    const written = await Filesystem.writeFile({ path: filename, data: base64Data, directory: "CACHE" });
+    await Share.share({ text, files: [written.uri], url: written.uri });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Gagal membagikan PDF." };
+  }
+}
+
 interface BluetoothPrinterPlugin {
   getPaired: () => Promise<{ devices: { name?: string; address: string }[] }>;
   printText: (opts: { address: string; text: string }) => Promise<unknown>;

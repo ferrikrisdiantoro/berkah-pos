@@ -37,9 +37,16 @@ export default async function EditContactPage({
       <PageHeader title="Edit Kontak" subtitle={contact.name}>
         <div className="flex items-center gap-2">
           {(contact.type === "supplier" || contact.type === "both") && (
-            <Link href={`/rekap-vendor?contact=${contact.id}`}>
+            <Link href={`/rekap-vendor?jenis=beli&contact=${contact.id}`}>
               <Button variant="outline">
-                <ClipboardList className="h-4 w-4" /> Rekap & Cetak PDF
+                <ClipboardList className="h-4 w-4" /> Rekap Pembelian
+              </Button>
+            </Link>
+          )}
+          {(contact.type === "customer" || contact.type === "both") && (
+            <Link href={`/rekap-vendor?jenis=jual&contact=${contact.id}`}>
+              <Button variant="outline">
+                <ClipboardList className="h-4 w-4" /> Rekap Penjualan
               </Button>
             </Link>
           )}

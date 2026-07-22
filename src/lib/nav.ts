@@ -13,6 +13,7 @@ import {
   Scale,
   ReceiptText,
   ClipboardList,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ export const NAV: NavItem[] = [
   { href: "/titipan", label: "Titipan", icon: PackageOpen, master: false },
   { href: "/hak-pemilik", label: "Hak Pemilik", icon: HandCoins, master: false },
   { href: "/kontak", label: "Kontak", icon: Users, master: false },
+  { href: "/rekap-vendor", label: "Buku Besar", icon: BookOpen, master: false },
   { href: "/pengeluaran", label: "Pengeluaran", icon: ReceiptText, master: false },
   { href: "/kas", label: "Buku Kas", icon: Wallet, master: true },
   { href: "/hutang-piutang", label: "Hutang & Piutang", icon: Scale, master: true },
