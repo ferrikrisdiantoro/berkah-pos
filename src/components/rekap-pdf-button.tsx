@@ -148,16 +148,21 @@ export function RekapPdfButton({ data }: { data: RekapPdfData }) {
         doc.addPage();
         y = 15;
       }
-      const sumX = 220;
+      // Label rata kanan + nilai rata kanan di kolom terpisah, jarak cukup
+      // lebar (39mm) supaya angka besar (mis. Rp 999.999.999) tak bertabrakan
+      // dengan labelnya — sebelumnya "TOTAL" & nilainya sempat nempel jadi
+      // "TOTALRp ...".
+      const labelX = 248;
+      const valueX = 287;
       doc.setFontSize(10);
-      doc.text(`TOTAL`, sumX, y);
-      doc.text(formatRupiah(data.grandTotal), sumX + 30, y, { align: "right" });
-      doc.text(`Dibayar`, sumX, y + 6);
-      doc.text(formatRupiah(data.totalDibayar), sumX + 30, y + 6, { align: "right" });
+      doc.text("TOTAL", labelX, y, { align: "right" });
+      doc.text(formatRupiah(data.grandTotal), valueX, y, { align: "right" });
+      doc.text("Dibayar", labelX, y + 6, { align: "right" });
+      doc.text(formatRupiah(data.totalDibayar), valueX, y + 6, { align: "right" });
       doc.setFont("helvetica", "bold");
       const sisaLabel = data.sisa <= 0 ? "LUNAS" : "SISA";
-      doc.text(sisaLabel, sumX, y + 13);
-      doc.text(formatRupiah(Math.max(0, data.sisa)), sumX + 30, y + 13, { align: "right" });
+      doc.text(sisaLabel, labelX, y + 13, { align: "right" });
+      doc.text(formatRupiah(Math.max(0, data.sisa)), valueX, y + 13, { align: "right" });
       doc.setFont("helvetica", "normal");
 
       const safeName = data.contactName.replace(/[^\w-]/g, "") || "kontak";
