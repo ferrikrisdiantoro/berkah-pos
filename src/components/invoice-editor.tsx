@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Minus, Search, Zap, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -100,6 +100,10 @@ export function InvoiceEditor({
   );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // Mode Cepat: grid tombol produk (tap = tambah), untuk transaksi eceran
+  // cepat -- default aktif utk penjualan, form detail tetap ada sbg cadangan.
+  const [quickMode, setQuickMode] = useState(kind === "sale" && !initial);
+  const [quickSearch, setQuickSearch] = useState("");
 
   const contactLabel = kind === "purchase" ? "Supplier" : "Pelanggan";
   const priceField = kind === "purchase" ? "buy_price" : "sell_price";
@@ -157,6 +161,63 @@ export function InvoiceEditor({
     if (val.startsWith("c:")) pickConsignment(key, id);
     else pickProduct(key, id);
   }
+
+  // Mode Cepat: tap tombol produk -> baris bertambah/qty naik 1, tanpa
+  // dropdown. Tap lagi produk yang sama = qty +1 (tekan tekan tekan ...).
+  function tapProduct(productId: string) {
+    setRows((rs) => {
+      const idx = rs.findIndex((r) => r.product_id === productId);
+      if (idx >= 0) {
+        const next = [...rs];
+        next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
+        return next;
+      }
+      const p = products.find((x) => x.id === productId);
+      if (!p) return rs;
+      const price = Number(p[priceField]);
+      const filled: Row = {
+        key: `r${rowSeq++}`,
+        product_id: productId,
+        consignment_id: null,
+        description: p.name,
+        qty: 1,
+        unit_price: price,
+        discount_pct: 0,
+        price_pending: false,
+        vendor_qty: null,
+      };
+      // Isi baris kosong pertama kalau ada, supaya tak numpuk baris kosong.
+      const emptyIdx = rs.findIndex(
+        (r) => !r.product_id && !r.consignment_id && !r.description.trim(),
+      );
+      if (emptyIdx >= 0) {
+        const next = [...rs];
+        next[emptyIdx] = filled;
+        return next;
+      }
+      return [...rs, filled];
+    });
+  }
+
+  function decProduct(productId: string) {
+    setRows((rs) => {
+      const idx = rs.findIndex((r) => r.product_id === productId);
+      if (idx < 0) return rs;
+      const r = rs[idx];
+      if (r.qty <= 1) {
+        return rs.length > 1 ? rs.filter((x) => x.key !== r.key) : [newRow()];
+      }
+      const next = [...rs];
+      next[idx] = { ...r, qty: r.qty - 1 };
+      return next;
+    });
+  }
+
+  const cartRows = rows.filter((r) => r.product_id || r.consignment_id || r.description.trim());
+  const filteredProducts = quickSearch.trim()
+    ? products.filter((p) => p.name.toLowerCase().includes(quickSearch.trim().toLowerCase()))
+    : products;
+  const qtyByProduct = new Map(rows.filter((r) => r.product_id).map((r) => [r.product_id, r.qty]));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -236,6 +297,158 @@ export function InvoiceEditor({
 
       <Card>
         <CardContent className="pt-5">
+          <div className="mb-4 inline-flex overflow-hidden rounded-md border border-border">
+            <button
+              type="button"
+              onClick={() => setQuickMode(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium ${
+                quickMode ? "bg-primary text-primary-foreground" : "bg-background"
+              }`}
+            >
+              <Zap className="h-3.5 w-3.5" /> Mode Cepat
+            </button>
+            <button
+              type="button"
+              onClick={() => setQuickMode(false)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium ${
+                !quickMode ? "bg-primary text-primary-foreground" : "bg-background"
+              }`}
+            >
+              <List className="h-3.5 w-3.5" /> Mode Detail
+            </button>
+          </div>
+
+          {quickMode ? (
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Cari produk…"
+                  value={quickSearch}
+                  onChange={(e) => setQuickSearch(e.target.value)}
+                />
+              </div>
+
+              {products.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Belum ada produk di master. Tambah dulu di menu Produk, atau pakai Mode
+                  Detail untuk barang titipan / manual.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                  {filteredProducts.map((p) => {
+                    const qty = qtyByProduct.get(p.id) ?? 0;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => tapProduct(p.id)}
+                        className={`relative flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 text-left transition-colors active:scale-[0.98] ${
+                          qty > 0
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-background hover:bg-muted/60"
+                        }`}
+                      >
+                        {qty > 0 && (
+                          <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground">
+                            {qty}
+                          </span>
+                        )}
+                        <span className="text-sm font-semibold">{p.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatRupiah(Number(p[priceField]))}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {filteredProducts.length === 0 && (
+                    <p className="col-span-full py-4 text-center text-sm text-muted-foreground">
+                      Produk tidak ditemukan.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {cartRows.length > 0 && (
+                <div className="rounded-md border border-border">
+                  <div className="border-b border-border bg-muted/40 px-3 py-2 text-xs font-semibold uppercase text-muted-foreground">
+                    Keranjang
+                  </div>
+                  <div className="flex flex-col divide-y divide-border">
+                    {cartRows.map((r) => (
+                      <div key={r.key} className="flex items-center gap-2 px-3 py-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium">{r.description}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatRupiah(r.unit_price)} / satuan
+                          </div>
+                        </div>
+                        {r.product_id ? (
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => decProduct(r.product_id!)}
+                              aria-label="Kurangi"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </Button>
+                            <Input
+                              className="h-7 w-16 text-center"
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={r.qty}
+                              onChange={(e) => update(r.key, { qty: Number(e.target.value) })}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => tapProduct(r.product_id!)}
+                              aria-label="Tambah"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Input
+                            className="h-7 w-16 text-center"
+                            type="number"
+                            step="any"
+                            min="0"
+                            value={r.qty}
+                            onChange={(e) => update(r.key, { qty: Number(e.target.value) })}
+                          />
+                        )}
+                        <div className="w-24 text-right text-sm font-semibold">
+                          {formatRupiah(lineTotal(r))}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() =>
+                            setRows((rs) =>
+                              rs.length > 1 ? rs.filter((x) => x.key !== r.key) : [newRow()],
+                            )
+                          }
+                          aria-label="Hapus"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -386,16 +599,21 @@ export function InvoiceEditor({
               </tbody>
             </table>
           </div>
+          )}
 
           <div className="mt-3 flex items-center justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setRows((rs) => [...rs, newRow()])}
-            >
-              <Plus className="h-4 w-4" /> Tambah Baris
-            </Button>
+            {!quickMode ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setRows((rs) => [...rs, newRow()])}
+              >
+                <Plus className="h-4 w-4" /> Tambah Baris
+              </Button>
+            ) : (
+              <div />
+            )}
             <div className="text-right">
               <div className="text-sm text-muted-foreground">Total</div>
               <div className="text-xl font-bold">{formatRupiah(grandTotal)}</div>
